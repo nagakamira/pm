@@ -1,0 +1,10 @@
+inf=/var/pkg/info
+lst=/var/pkg/list
+pkgext=pkg.tar.xz
+
+CHOST="x86_64-unknown-linux-gnu"
+CFLAGS="-march=native -mtune=native -O2 -pipe"
+#CFLAGS="-march=x86-64 -mtune=generic -O2 -pipe"
+CXXFLAGS="$CFLAGS"
+LDFLAGS="-Wl,-O1,--as-needed"
+MAKEFLAGS="-j9"

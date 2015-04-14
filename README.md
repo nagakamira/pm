@@ -1,2 +1,2 @@
 # systemgr
-A simple system manager
+A simple package and system manager

@@ -17,16 +17,12 @@ esac
 
 if [ -z "$1" ]; then $0 -h; exit 0; fi
 
-recipe=$(basename $1); cd $(dirname $1)
-Pwd=`pwd`; recipe=$Pwd/$recipe
-
 mkdir -p $arc $par $pkg $src
 
-if [ ! -f "$recipe" ]; then
+if [ ! -f "$1" ]; then
     echo "recipe not found"; exit 1
 else
-    . $recipe
-    if [ -z "$p" ]; then p=$n-$v; fi
+    . $1; if [ -z "$p" ]; then p=$n-$v; fi
 fi
 
 if [ -n "$u" ]; then

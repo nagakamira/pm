@@ -4,9 +4,8 @@
 # Pkgmkr is licenced under the GPLv3: http://gplv3.fsf.org
 
 . /etc/pkgmkr
-
-inf=/var/pkg/info
-lst=/var/pkg/list
+inf=/pkg/info
+lst=/pkg/list
 
 src=$HOME/build/src
 pkg=$HOME/build/pkg
@@ -25,7 +24,6 @@ mkdir -p $arc $pkg $src
 
 if [ -n "$u" ]; then
     file=$(basename $u)
-
     if [ ! -f $arc/$file ]; then
         echo "downloading: $file"
         curl -L -o $arc/$file $u

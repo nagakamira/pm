@@ -1,2 +1,2 @@
-# systemgr
-A simple package and system manager
+# pkgmgr
+A simple package manager

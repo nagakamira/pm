@@ -1,7 +1,7 @@
 #!/bin/bash -e
 
 # Copyright 2015 Ali Caliskan <ali.h.caliskan at gmail.com>
-# Pkgmkr is licenced under the GPLv3: http:///gplv3.fsf.org
+# Pkgmkr is licenced under the GPLv3: http://gplv3.fsf.org
 
 . /etc/pkgmkr
 inf=/pkg/info

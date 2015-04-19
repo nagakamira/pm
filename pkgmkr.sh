@@ -39,6 +39,8 @@ if [ -n "$u" ]; then
     else
         tar -C $src -xpf $arc/$file
     fi
+else
+    p=./
 fi
 
 echo "building: $n-$v"

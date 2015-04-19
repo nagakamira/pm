@@ -19,7 +19,6 @@ esac
 
 if [ -z "$1" ]; then $0 -h; exit 0; fi
 . $1; if [ -z "$p" ]; then p=$n-$v; fi
-
 mkdir -p $arc $pkg $src
 
 if [ -n "$u" ]; then
@@ -40,11 +39,16 @@ else
 fi
 
 echo "building: $n-$v"
-cd $src/$p; pkg=$pkg/$p; build
+cd $src/$p; pkg=$pkg/$p
+
+export CHOST CFLAGS CXXFLAGS LDFLAGS MAKEFLAGS arc pkg src n v p
+export -f build; fakeroot -s $src/state build
 cd $pkg; mkdir -p $pkg/{$inf,$lst}
 
 echo "n=$n" >> $pkg/$inf/$n
 echo "v=$v" >> $pkg/$inf/$n
 echo "u=$u" >> $pkg/$inf/$n
+
 find -L ./ | sed 's/.\//\//' | sort > $pkg/$lst/$n
-tar -cpJf $arc/$n-$v.pkg.tar.xz ./
+fakeroot -i $src/state -- tar -cpJf $arc/$n-$v.pkg.tar.xz ./
+rm -rf $src/state

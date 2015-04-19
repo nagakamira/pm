@@ -5,6 +5,9 @@
 
 . /etc/pkgmkr
 
+inf=/var/pkg/info
+lst=/var/pkg/list
+
 src=$HOME/build/src
 pkg=$HOME/build/pkg
 arc=$HOME/build/arc
@@ -16,14 +19,9 @@ case "$1" in
 esac
 
 if [ -z "$1" ]; then $0 -h; exit 0; fi
+. $1; if [ -z "$p" ]; then p=$n-$v; fi
 
-mkdir -p $arc $par $pkg $src
-
-if [ ! -f "$1" ]; then
-    echo "recipe not found"; exit 1
-else
-    . $1; if [ -z "$p" ]; then p=$n-$v; fi
-fi
+mkdir -p $arc $pkg $src
 
 if [ -n "$u" ]; then
     file=$(basename $u)
@@ -51,4 +49,4 @@ echo "n=$n" >> $pkg/$inf/$n
 echo "v=$v" >> $pkg/$inf/$n
 echo "u=$u" >> $pkg/$inf/$n
 find -L ./ | sed 's/.\//\//' | sort > $pkg/$lst/$n
-tar -cpJf $arc/$n-$v.$pkgext ./; #rm -rf $pkg $src
+tar -cpJf $arc/$n-$v.pkg.tar.xz ./

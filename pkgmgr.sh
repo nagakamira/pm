@@ -3,9 +3,9 @@
 # Copyright 2015 Ali Caliskan <ali.h.caliskan at gmail.com>
 # Pkgmgr is licenced under the GPLv3: http://gplv3.fsf.org
 
-. /etc/pkgmkr
-
 root=/
+inf=/var/pkg/info
+lst=/var/pkg/list
 
 PkgAdd() {
     echo "installing: $(basename ${name%.pkg*})"

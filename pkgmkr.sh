@@ -1,7 +1,7 @@
 #!/bin/bash -e
 
 # Copyright 2015 Ali Caliskan <ali.h.caliskan at gmail.com>
-# Pkgmkr is licenced under the GPLv3: http://gplv3.fsf.org
+# Pkgmkr is licenced under the GPLv3: http:///gplv3.fsf.org
 
 . /etc/pkgmkr
 inf=/pkg/info
@@ -19,6 +19,8 @@ esac
 
 if [ -z "$1" ]; then $0 -h; exit 0; fi
 . $1; if [ -z "$p" ]; then p=$n-$v; fi
+_rcs=$(dirname $1); cd $_rcs; rcs=`pwd`
+
 mkdir -p $arc $pkg $src
 
 if [ -n "$u" ]; then
@@ -41,7 +43,7 @@ fi
 echo "building: $n-$v"
 cd $src/$p; pkg=$pkg/$p
 
-export CHOST CFLAGS CXXFLAGS LDFLAGS MAKEFLAGS arc pkg src n v p
+export CHOST CFLAGS CXXFLAGS LDFLAGS MAKEFLAGS arc pkg rcs src n v p
 export -f build; fakeroot -s $src/state build
 cd $pkg; mkdir -p $pkg/{$inf,$lst}
 

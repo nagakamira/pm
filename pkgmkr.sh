@@ -4,8 +4,10 @@
 # Pkgmkr is licenced under the GPLv3: http://gplv3.fsf.org
 
 . /etc/pkgmkr
-inf=/pkg/info
-lst=/pkg/list
+
+inf=/pkg/inf
+lst=/pkg/lst
+sys=/pkg/sys
 
 src=$HOME/build/src
 pkg=$HOME/build/pkg
@@ -18,6 +20,7 @@ case "$1" in
 esac
 
 if [ -z "$1" ]; then $0 -h; exit 0; fi
+
 . $1; if [ -z "$p" ]; then p=$n-$v; fi
 _rcs=$(dirname $1); cd $_rcs; rcs=`pwd`
 
@@ -45,12 +48,16 @@ cd $src/$p; pkg=$pkg/$p
 
 export CHOST CFLAGS CXXFLAGS LDFLAGS MAKEFLAGS arc pkg rcs src n v p
 export -f build; fakeroot -s $src/state build
-cd $pkg; mkdir -p $pkg/{$inf,$lst}
 
+if [ -f "$rcs/system" ]; then
+    mkdir -p $pkg/$sys; cp $rcs/system $pkg/$sys/$n
+fi
+
+cd $pkg; mkdir -p $pkg/{$inf,$lst}
 echo "n=$n" >> $pkg/$inf/$n
 echo "v=$v" >> $pkg/$inf/$n
 echo "u=$u" >> $pkg/$inf/$n
-
 find -L ./ | sed 's/.\//\//' | sort > $pkg/$lst/$n
+
 fakeroot -i $src/state -- tar -cpJf $arc/$n-$v.pkg.tar.xz ./
-rm -rf $src/state
+rm -rf $src/state $pkg

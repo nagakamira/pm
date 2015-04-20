@@ -4,8 +4,9 @@
 # Pkgmgr is licenced under the GPLv3: http://gplv3.fsf.org
 
 root=/
-inf=/pkg/info
-lst=/pkg/list
+inf=/pkg/inf
+lst=/pkg/lst
+sys=/pkg/sys
 
 PkgAdd() {
     echo "installing: $(basename ${name%.pkg*})"

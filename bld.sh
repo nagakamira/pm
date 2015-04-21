@@ -1,13 +1,10 @@
 #!/bin/bash -e
 
 # Copyright 2015 Ali Caliskan <ali.h.caliskan at gmail.com>
-# Pkgmkr is licenced under the GPLv3: http://gplv3.fsf.org
+# Bld is licenced under the GPLv3: http://gplv3.fsf.org
 
-. /etc/pkgmkr
-
-inf=/pkg/inf
-lst=/pkg/lst
-sys=/pkg/sys
+. /etc/bld.conf
+. /etc/pkgmgr.conf
 
 src=$HOME/build/src
 pkg=$HOME/build/pkg

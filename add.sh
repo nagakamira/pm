@@ -20,7 +20,7 @@ if [ -z "$1" ]; then $0 -h; exit 0; else name=$1; fi;
 echo "installing: $(basename ${name%.pkg*})"
 tar -C $root -xpf $name
 
-pn=$(basename ${name%-*}); . $root/$inf/$pn; export n v
+pn=$(basename ${name%-*}); . $root/$inf/$pn
 if [ -f "$root/$sys/$pn" ]; then . $root/$sys/$pn
     if type _add >/dev/null 2>&1; then _add; fi
 fi

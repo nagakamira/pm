@@ -10,6 +10,23 @@ src=$HOME/build/src
 pkg=$HOME/build/pkg
 arc=$HOME/build/arc
 
+download() {
+    file=$(basename $1)
+    if [ ! -f $arc/$file ]; then
+        echo "downloading: $file"
+        curl -L -o $arc/$file $1
+    fi
+}
+
+extract() {
+    echo "extracting: $file"
+    if [ "${file##*.}" = "zip" ]; then
+        unzip -d $src $arc/$file
+    else
+        tar -C $src -xpf $arc/$file
+    fi    
+}
+
 case "$1" in
     -h|--help)
         echo "usage: `basename $0` <recipe>"
@@ -26,34 +43,14 @@ mkdir -p $arc $pkg $src
 if [ -n "$u" ]; then
     if [ "${#u[@]}" -gt "1" ]; then
         for _u in "${u[@]}"; do
-            file=$(basename $_u)
-            if [ ! -f $arc/$file ]; then
-                echo "downloading: $file"
-                curl -L -o $arc/$file $_u
-            fi
-
+            download $_u
             if [ -z "$e" ]; then
-                echo "extracting: $file"
-                if [ "${file##*.}" = "zip" ]; then
-                    unzip -d $src $arc/$file
-                else
-                    tar -C $src -xpf $arc/$file
-                fi
+                extract
             fi
         done
     else
-        file=$(basename $u)
-        if [ ! -f $arc/$file ]; then
-            echo "downloading: $file"
-            curl -L -o $arc/$file $u
-        fi
-
-        echo "extracting: $file"
-        if [ "${file##*.}" = "zip" ]; then
-            unzip -d $src $arc/$file
-        else
-            tar -C $src -xpf $arc/$file
-        fi
+        download $u
+        extract
     fi
 else
     p=./

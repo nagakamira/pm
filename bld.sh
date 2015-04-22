@@ -24,24 +24,43 @@ _rcs=$(dirname $1); cd $_rcs; rcs=`pwd`
 mkdir -p $arc $pkg $src
 
 if [ -n "$u" ]; then
-    file=$(basename $u)
-    if [ ! -f $arc/$file ]; then
-        echo "downloading: $file"
-        curl -L -o $arc/$file $u
-    fi
+    if [ "${#u[@]}" -gt "1" ]; then
+        for _u in "${u[@]}"; do
+            file=$(basename $_u)
+            if [ ! -f $arc/$file ]; then
+                echo "downloading: $file"
+                curl -L -o $arc/$file $_u
+            fi
 
-    echo "extracting: $file"
-    if [ "${file##*.}" = "zip" ]; then
-        unzip -d $src $arc/$file
+            if [ -z "$e" ]; then
+                echo "extracting: $file"
+                if [ "${file##*.}" = "zip" ]; then
+                    unzip -d $src $arc/$file
+                else
+                    tar -C $src -xpf $arc/$file
+                fi
+            fi
+        done
     else
-        tar -C $src -xpf $arc/$file
+        file=$(basename $u)
+        if [ ! -f $arc/$file ]; then
+            echo "downloading: $file"
+            curl -L -o $arc/$file $u
+        fi
+
+        echo "extracting: $file"
+        if [ "${file##*.}" = "zip" ]; then
+            unzip -d $src $arc/$file
+        else
+            tar -C $src -xpf $arc/$file
+        fi
     fi
 else
     p=./
 fi
 
 echo "building: $n-$v"
-cd $src/$p; pkg=$pkg/$p
+cd $src/$p; pkg=$pkg/$n
 
 export CHOST CFLAGS CXXFLAGS LDFLAGS MAKEFLAGS arc pkg rcs src n v p
 export -f build; fakeroot -s $src/state build
@@ -57,4 +76,4 @@ echo "u=$u" >> $pkg/$inf/$n
 find -L ./ | sed 's/.\//\//' | sort > $pkg/$lst/$n
 
 fakeroot -i $src/state -- tar -cpJf $arc/$n-$v.pkg.tar.xz ./
-rm -rf $src/state $pkg
+rm -rf $src/state $pkg $src

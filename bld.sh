@@ -11,20 +11,24 @@ pkg=$HOME/build/pkg
 arc=$HOME/build/arc
 
 download() {
-    file=$(basename $1)
-    if [ ! -f $arc/$file ]; then
-        echo "downloading: $file"
-        curl -L -o $arc/$file $1
+    if [ ! "${_url%://*}" = "git" ]; then
+        file=$(basename $1)
+        if [ ! -f $arc/$file ]; then
+            echo "downloading: $file"
+            curl -L -o $arc/$file $1
+        fi
     fi
 }
 
 extract() {
-    echo "extracting: $file"
-    if [ "${file##*.}" = "zip" ]; then
-        unzip -d $src $arc/$file
-    else
-        tar -C $src -xpf $arc/$file
-    fi    
+    if [ ! "${_url%://*}" = "git" ]; then
+        echo "extracting: $file"
+        if [ "${file##*.}" = "zip" ]; then
+            unzip -d $src $arc/$file
+        else
+            tar -C $src -xpf $arc/$file
+        fi
+    fi
 }
 
 case "$1" in
@@ -40,7 +44,7 @@ _rcs=$(dirname $1); cd $_rcs; rcs=`pwd`
 
 pkg=$pkg/$n; mkdir -p $arc $pkg $src
 
-if [ -n "$u" ]; then
+if [ -n "$u" ]; then _url=$u
     if [ "${#u[@]}" -gt "1" ]; then
         for _u in "${u[@]}"; do
             download $_u
@@ -56,9 +60,9 @@ else
     p=./
 fi
 
-echo "building: $n-$v"; cd $src/$p
+echo "building: $n-$v"; if [ -d "$src/$p" ]; then cd $src/$p; fi
 
-export CHOST CFLAGS CXXFLAGS LDFLAGS MAKEFLAGS arc pkg rcs src n v p
+export CHOST CFLAGS CXXFLAGS LDFLAGS MAKEFLAGS arc pkg rcs src n v u p
 export -f build; fakeroot -s $src/state build
 
 if [ -f "$rcs/system" ]; then

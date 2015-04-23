@@ -38,7 +38,7 @@ if [ -z "$1" ]; then $0 -h; exit 0; fi
 . $1; if [ -z "$p" ]; then p=$n-$v; fi
 _rcs=$(dirname $1); cd $_rcs; rcs=`pwd`
 
-mkdir -p $arc $pkg $src
+pkg=$pkg/$n; mkdir -p $arc $pkg $src
 
 if [ -n "$u" ]; then
     if [ "${#u[@]}" -gt "1" ]; then
@@ -56,8 +56,7 @@ else
     p=./
 fi
 
-echo "building: $n-$v"
-cd $src/$p; pkg=$pkg/$n
+echo "building: $n-$v"; cd $src/$p
 
 export CHOST CFLAGS CXXFLAGS LDFLAGS MAKEFLAGS arc pkg rcs src n v p
 export -f build; fakeroot -s $src/state build

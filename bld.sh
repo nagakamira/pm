@@ -22,11 +22,13 @@ download() {
 
 extract() {
     if [ ! "${_url%://*}" = "git" ]; then
-        echo "extracting: $file"
-        if [ "${file##*.}" = "zip" ]; then
-            unzip -d $src $arc/$file
-        else
-            tar -C $src -xpf $arc/$file
+        if [ -z "$e" ]; then
+            echo "extracting: $file"
+            if [ "${file##*.}" = "zip" ]; then
+                unzip -d $src $arc/$file
+            else
+                tar -C $src -xpf $arc/$file
+            fi
         fi
     fi
 }
@@ -48,9 +50,7 @@ if [ -n "$u" ]; then _url=$u
     if [ "${#u[@]}" -gt "1" ]; then
         for _u in "${u[@]}"; do
             download $_u
-            if [ -z "$e" ]; then
-                extract
-            fi
+            extract
         done
     else
         download $u
@@ -60,7 +60,8 @@ else
     p=./
 fi
 
-echo "building: $n-$v"; if [ -d "$src/$p" ]; then cd $src/$p; fi
+echo "building: $n-$v"
+if [ -d "$src/$p" ]; then cd $src/$p; else cd $src; fi
 
 export CHOST CFLAGS CXXFLAGS LDFLAGS MAKEFLAGS arc pkg rcs src n v u p
 export -f build; fakeroot -s $src/state build

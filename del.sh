@@ -5,11 +5,15 @@
 
 . /etc/pkgmgr.conf
 
+grpsys=false
+
 for i in $@; do
     case "$i" in
         -h|--help)
-            echo "usage: `basename $0` <name> (root=)"
+            echo "usage: `basename $0` <name> (root=) (grpsys)"
             exit 0;;
+        grpsys)
+            grpsys=true;;
         root=*)
             root=${i#*=};;
     esac
@@ -20,13 +24,21 @@ if [ -z "$1" ]; then $0 -h; exit 0; else name=$1; fi;
 ign="--ignore-fail-on-non-empty"
 
 if [ -f $root/$inf/$name ]; then
-    . $root/$inf/$name
+    . $root/$inf/$name; export n v
 else
     echo "$name: info not found"; exit 1
 fi
 
-if [ -f "$root/$sys/$name" ]; then . $root/$sys/$name
-    if type del_ >/dev/null 2>&1; then del_; fi
+if [ "$grpsys" = false ]; then
+    if [ -f "$root/$sys/$name" ]; then
+        . $root/$sys/$name; export -f _del
+        if [ "$root" != "/" ]; then chroot $root /bin/sh -c \
+            ". $sys/$name; if type del_ >/dev/null 2>&1; then del_; fi"
+        else
+            if type del_ >/dev/null 2>&1; then del_; fi
+        fi
+
+    fi
 fi
 
 if [ -f "$root/$lst/$name" ]; then
@@ -44,7 +56,13 @@ for l in $list; do
     fi
 done
 
-if type _del >/dev/null 2>&1; then _del; fi
+if [ "$grpsys" = false ]; then
+    if [ "$root" != "/" ]; then chroot $root /bin/sh -c \
+        "if type _del >/dev/null 2>&1; then _del; fi"
+    else
+        if type _del >/dev/null 2>&1; then _del; fi
+    fi
+fi
 
 if [ ! -d $root/$log ]; then mkdir -p $root/$log; fi
 echo "[$(date +%Y-%m-%d) $(date +%H:%M)] [DEL] $n ($v)" >> $root/$log/del

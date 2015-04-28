@@ -24,6 +24,6 @@ for i in $(ls $grp); do
             fi
         fi
     else
-        echo "$grp/$i/recipe: info not found"
+        echo "$grp/$i/recipe: file not found"
     fi
 done

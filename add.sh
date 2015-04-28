@@ -10,7 +10,7 @@ grpsys=false
 for i in $@; do
     case "$i" in
         -h|--help)
-            echo "usage: `basename $0` <name> (root=) (grpsys)"
+            echo "usage: `basename $0` <file> (root=)"
             exit 0;;
         grpsys)
             grpsys=true;;
@@ -19,13 +19,13 @@ for i in $@; do
     esac
 done
 
-if [ -z "$1" ]; then $0 -h; exit 0; else name=$1; fi;
+if [ -z "$1" ]; then $0 -h; exit 0; else file=$1; fi;
 
-echo "installing: $(basename ${name%.pkg*})"
-tar -C $root -xpf $name
+echo "installing: $(basename ${file%.pkg*})"
+tar -C $root -xpf $file
 
 if [ "$grpsys" = false ]; then
-    pn=$(basename ${name%-*}); . $root/$inf/$pn; export n v
+    pn=$(basename ${file%-*}); . $root/$inf/$pn; export n v
     if [ -f "$root/$sys/$pn" ]; then . $root/$sys/$pn
         if [ "$root" != "/" ]; then chroot $root /bin/sh -c \
             ". $sys/$pn; if type _add >/dev/null 2>&1; then _add; fi"

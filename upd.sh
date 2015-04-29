@@ -5,15 +5,11 @@
 
 . /etc/pkgmgr.conf
 
-grpsys=false
-
 for i in $@; do
     case "$i" in
         -h|--help)
             echo "usage: `basename $0` <recipe> <arcdir>"
             exit 0;;
-        grpsys)
-            grpsys=true;;
     esac
 done
 

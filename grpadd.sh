@@ -18,7 +18,7 @@ done
 if [ -z "$1" ]; then $0 -h; exit 0; else grp=$1; arc=$2; fi;
 
 for i in $(ls $grp); do
-    . $grp/$i/recipe
+    . $grp/$i/recipe; export n v
     if [ -f "$arc/$n-$v.pkg.tar.xz" ]; then
         add $arc/$n-$v.pkg.tar.xz root=$root grpsys
     else

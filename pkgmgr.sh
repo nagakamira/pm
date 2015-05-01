@@ -5,7 +5,7 @@
 
 . /etc/pkgmgr.conf
 
-ChkCon() {
+PkgCon() {
     out=/tmp/out.txt
     cat $lst/* | sort -n | uniq -d > $out
     for i in $(cat $out); do
@@ -18,7 +18,7 @@ ChkCon() {
     done
 }
 
-ChkInf() {
+PkgInf() {
     if [ -f $inf/$name ]; then
         . $inf/$name
 
@@ -34,7 +34,7 @@ ChkInf() {
     fi
 }
 
-ChkLst() {
+PkgLst() {
     if [ -n "$name" ]; then
         if [ -f $lst/$name ]; then
             cat $lst/$name
@@ -44,7 +44,7 @@ ChkLst() {
     fi
 }
 
-ChkOwn() {
+PkgOwn() {
     if [ -n "$name" ]; then
         _own=$(grep $name $lst/*)
         for ln in $_own; do
@@ -69,8 +69,8 @@ done
 if [ -z "$1" ]; then $0 -h; exit 0; else o=$1; fi; name=$2
 
 case "$o" in
-    con) ChkCon; exit 0;;
-    inf) ChkInf; exit 0;;
-    lst) ChkLst; exit 0;;
-    own) ChkOwn; exit 0;;
+    con) PkgCon; exit 0;;
+    inf) PkgInf; exit 0;;
+    lst) PkgLst; exit 0;;
+    own) PkgOwn; exit 0;;
 esac

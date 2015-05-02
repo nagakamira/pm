@@ -47,7 +47,7 @@ fi
 
 if [ -z "$p" ]; then p=$n-$v; fi
 
-pkg=$pkg/$n; mkdir -p $arc $pkg $src
+_pkg=$pkg; pkg=$pkg/$n; mkdir -p $arc $pkg $src
 
 if [ -n "$u" ]; then _url=$u
     if [ "${#u[@]}" -gt "1" ]; then
@@ -83,4 +83,4 @@ echo "u=$u" >> $pkg/$inf/$n
 find -L ./ | sed 's/.\//\//' | sort > $pkg/$lst/$n
 
 fakeroot -i $src/state -- tar -cpJf $arc/$n-$v.$pkgext ./
-rm -rf $src/state $pkg $src
+rm -rf $src/state $_pkg $src

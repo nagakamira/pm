@@ -21,7 +21,7 @@ if [ -z "$1" ]; then $0 -h; exit 0; else gn=$1; fi;
 
 for _pkg in $(ls $root/$inf); do
     if [ -f $root/$inf/$_pkg ]; then
-    . $root/$inf/$_pkg; echo $n $v
+        . $root/$inf/$_pkg; echo $n $v
     fi
  
     if [ "$s" = "$gn" ]; then plst+=($n); fi

@@ -55,6 +55,24 @@ PkgOwn() {
     fi
 }
 
+GrpLst() {
+    plst()
+
+    if [ ! -d $rcs ]; then git clone $gitrcs $rcs; fi
+
+    for _pkg in $(ls $rcs); do
+        if [ -f $rcs/$_pkg/recipe ]; then
+            . $rcs/$_pkg/recipe
+        fi
+ 
+        if [ "$s" = "$name" ]; then plst+=($n); fi
+    done
+
+    plst=($(for i in ${plst[@]}; do echo $i; done | sort -u))
+
+    echo "${plst[@]}"
+}
+
 for i in $@; do
     case "$i" in
         -h|--help)
@@ -64,6 +82,7 @@ for i in $@; do
             echo "  inf <name>         show program information"
             echo "  lst <name>         show program filelist"
             echo "  own <path>         show the file ownership"
+            echo "  grp <name>         show group of packages"
             exit 0;;
     esac
 done
@@ -75,4 +94,5 @@ case "$o" in
     inf) PkgInf; exit 0;;
     lst) PkgLst; exit 0;;
     own) PkgOwn; exit 0;;
+    grp) GrpLst; exit 0;;
 esac

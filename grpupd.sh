@@ -21,7 +21,7 @@ if [ ! -d $rcs ]; then git clone $gitrcs $rcs; fi
 
 for _pkg in $(ls $rcs); do
     if [ -f $rcs/$_pkg/recipe ]; then
-    . $rcs/$_pkg/recipe
+    	. $rcs/$_pkg/recipe
     fi
  
     if [ "$s" = "$gn" ]; then plst+=($n); fi

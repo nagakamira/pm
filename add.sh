@@ -6,11 +6,25 @@
 . /etc/pkgmgr.conf
 
 grpsys=false
+deps=()
+
+rdeps() {
+    . $rcs/$1/recipe
+    deps=(${deps[@]} $1)
+    for dep in ${d[@]}; do
+        if [[ ${deps[*]} =~ $dep ]]; then
+            continue
+        else
+            deps=(${deps[@]} $dep)
+            rdeps $dep
+        fi
+    done
+}
 
 for i in $@; do
     case "$i" in
         -h|--help)
-            echo "usage: `basename $0` <file> (root=)"
+            echo "usage: `basename $0` <name> (root=)"
             exit 0;;
         grpsys)
             grpsys=true;;
@@ -19,21 +33,37 @@ for i in $@; do
     esac
 done
 
-if [ -z "$1" ]; then $0 -h; exit 0; else file=$1; fi;
+if [ -z "$1" ]; then $0 -h; exit 0; else pn=$1; fi;
 
-echo "installing: $(basename ${file%.pkg*})"
-tar -C $root -xpf $file
-
-if [ "$grpsys" = false ]; then
-    pn=$(basename ${file%-*}); . $root/$inf/$pn; export n v
-    if [ -f "$root/$sys/$pn" ]; then . $root/$sys/$pn
-        if [ "$root" != "/" ]; then chroot $root /bin/sh -c \
-            ". $sys/$pn; if type _add >/dev/null 2>&1; then _add; fi"
-        else
-            if type _add >/dev/null 2>&1; then _add; fi
-        fi
-    fi
+if [ -f $rcs/$pn/recipe ]; then
+    . $rcs/$pn/recipe
+elif [ ! -d $rcs ]; then
+    git clone $gitrcs $rcs
+    . $rcs/$pn/recipe
+else
+    echo "$pn: recipe: file not found"; exit 1
 fi
 
-if [ ! -d $root/$log ]; then mkdir -p $root/$log; fi
-echo "[$(date +%Y-%m-%d) $(date +%H:%M)] [ADD] $pn ($v)" >> $root/$log/add
+rdeps $pn
+deps=($(echo ${deps[@]} | tr ' ' '\n' | sort -u | tr '\n' ' '))
+
+for dep in ${deps[@]}; do
+    . $rcs/$dep/recipe; export n v
+    if [ -f "$root/$inf/$n" ]; then continue; fi
+
+    echo "installing: $n-$v"
+    tar -C $root -xpf $arc/$n-$v.$pkgext
+
+    if [ "$grpsys" = false ]; then
+        if [ -f "$root/$sys/$n" ]; then . $root/$sys/$n
+            if [ "$root" != "/" ]; then chroot $root /bin/sh -c \
+                ". $sys/$n; if type _add >/dev/null 2>&1; then _add; fi"
+            else
+                if type _add >/dev/null 2>&1; then _add; fi
+            fi
+        fi
+    fi
+
+    if [ ! -d $root/$log ]; then mkdir -p $root/$log; fi
+    echo "[$(date +%Y-%m-%d) $(date +%H:%M)] [ADD] $n ($v)" >> $root/$log/add
+done

@@ -10,14 +10,19 @@ for i in $@; do
     esac
 done
 
+if [ ! -d /pkg ]; then
+	mkdir -p /pkg/arc; chmod -R 777 /pkg
+fi
+
 install -v -Dm755 add.sh $root/usr/bin/add
 install -v -Dm755 bld.sh $root/usr/bin/bld
 install -v -Dm755 del.sh $root/usr/bin/del
 install -v -Dm755 upd.sh $root/usr/bin/upd
+
 install -v -Dm755 grpadd.sh $root/usr/bin/grpadd
 install -v -Dm755 grpbld.sh $root/usr/bin/grpbld
 install -v -Dm755 grpdel.sh $root/usr/bin/grpdel
 install -v -Dm755 grpupd.sh $root/usr/bin/grpupd
+
 install -v -Dm755 pkgmgr.sh $root/usr/bin/pkgmgr
-install -v -Dm644 bld.conf $root/etc/bld.conf
-install -v -Dm644 pkgmgr.conf $root/etc/pkgmgr.conf
+install -v -Dm644 pkgmgr.rc $root/etc/pkgmgr.conf

@@ -26,14 +26,14 @@ ign="--ignore-fail-on-non-empty"
 if [ -f $root/$inf/$name ]; then
     . $root/$inf/$name; export n v
 else
-    echo "$name: info not found"; exit 1
+    echo "$name: info: file not found"; exit 1
 fi
 
 if [ "$grpsys" = false ]; then
-    if [ -f "$root/$sys/$name" ]; then
-        . $root/$sys/$name; export -f _del
+    if [ -f "$root/$sys/$n" ]; then
+        . $root/$sys/$n; export -f _del
         if [ "$root" != "/" ]; then chroot $root /bin/sh -c \
-            ". $sys/$name; if type del_ >/dev/null 2>&1; then del_; fi"
+            ". $sys/$n; if type del_ >/dev/null 2>&1; then del_; fi"
         else
             if type del_ >/dev/null 2>&1; then del_; fi
         fi
@@ -41,9 +41,9 @@ if [ "$grpsys" = false ]; then
     fi
 fi
 
-if [ -f "$root/$lst/$name" ]; then
-    echo "removing: $name-$v"
-    list=$(tac $root/$lst/$name)
+if [ -f "$root/$lst/$n" ]; then
+    echo "removing: $n-$v"
+    list=$(tac $root/$lst/$n)
 else
     continue
 fi

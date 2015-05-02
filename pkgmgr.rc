@@ -1,0 +1,20 @@
+root=/
+pkgext=pkg.tar.xz
+
+arc=/pkg/arc
+inf=/pkg/inf
+log=/pkg/log
+lst=/pkg/lst
+rcs=/pkg/rcs
+sys=/pkg/sys
+pkg=$HOME/build/pkg
+src=$HOME/build/src
+
+CHOST="x86_64-unknown-linux-gnu"
+CFLAGS="-march=native -mtune=native -O2 -pipe"
+#CFLAGS="-march=x86-64 -mtune=generic -O2 -pipe"
+CXXFLAGS="$CFLAGS"
+LDFLAGS="-Wl,-O1,--as-needed"
+MAKEFLAGS="-j9"
+
+gitrcs=https://github.com/selflex/recipes-pkgmgr.git

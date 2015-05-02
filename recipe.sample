@@ -1,10 +1,11 @@
 n=grep
 v=2.21
+s=infra
+d=('glibc' 'pcre' 'texinfo')
 u=ftp://ftp.gnu.org/gnu/$n/$n-$v.tar.xz
 
 build() {
-    ./configure --prefix=/usr \
-                --disable-perl-regexp
+    ./configure --prefix=/usr
     make
     make DESTDIR=$pkg install
 

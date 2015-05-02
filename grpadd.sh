@@ -5,32 +5,42 @@
 
 . /etc/pkgmgr.conf
 
+plst=()
+
 for i in $@; do
     case "$i" in
         -h|--help)
-            echo "usage: `basename $0` <grpdir> <arcdir> (root=)"
+            echo "usage: `basename $0` <group> (root=)"
             exit 0;;
         root=*)
             root=${i#*=};;
     esac
 done
 
-if [ -z "$1" ]; then $0 -h; exit 0; else grp=$1; arc=$2; fi;
+if [ -z "$1" ]; then $0 -h; exit 0; else gn=$1; fi;
 
-for i in $(ls $grp); do
-    . $grp/$i/recipe; export n v
-    if [ -f "$arc/$n-$v.pkg.tar.xz" ]; then
-        add $arc/$n-$v.pkg.tar.xz root=$root grpsys
-    else
-        echo "$arc/$n-$v.pkg.tar.xz: file not found"
+if [ ! -d $rcs ]; then git clone $gitrcs $rcs; fi
+
+for _pkg in $(ls $rcs); do
+    if [ -f $rcs/$_pkg/recipe ]; then
+    . $rcs/$_pkg/recipe
     fi
+ 
+    if [ "$s" = "$gn" ]; then plst+=($n); fi
 done
 
-for pn in $(ls $grp); do
-    . $grp/$pn/recipe; export n v
-    if [ -f "$root/$sys/$pn" ]; then . $root/$sys/$pn
+plst=($(for i in ${plst[@]}; do echo $i; done | sort -u))
+
+for _pkg in ${plst[@]}; do
+    . $rcs/$_pkg/recipe
+    add $n root=$root grpsys
+done
+
+for _pkg in ${plst[@]}; do
+    . $rcs/$_pkg/recipe; export n v
+    if [ -f "$root/$sys/$n" ]; then . $root/$sys/$n
         if [ "$root" != "/" ]; then chroot $root /bin/sh -c \
-            ". $sys/$pn; if type _add >/dev/null 2>&1; then _add; fi"
+            ". $sys/$n; if type _add >/dev/null 2>&1; then _add; fi"
         else
             if type _add >/dev/null 2>&1; then _add; fi
         fi

@@ -3,12 +3,7 @@
 # Copyright 2015 Ali Caliskan <ali.h.caliskan at gmail.com>
 # Bld is licenced under the GPLv3: http://gplv3.fsf.org
 
-. /etc/bld.conf
 . /etc/pkgmgr.conf
-
-src=$HOME/build/src
-pkg=$HOME/build/pkg
-arc=$HOME/build/arc
 
 download() {
     if [ ! "${_url%://*}" = "git" ]; then
@@ -35,14 +30,22 @@ extract() {
 
 case "$1" in
     -h|--help)
-        echo "usage: `basename $0` <recipe>"
+        echo "usage: `basename $0` <name>"
         exit 0;;
 esac
 
-if [ -z "$1" ]; then $0 -h; exit 0; fi
+if [ -z "$1" ]; then $0 -h; exit 0; else pn=$1; fi;
 
-. $1; if [ -z "$p" ]; then p=$n-$v; fi
-_rcs=$(dirname $1); cd $_rcs; rcs=`pwd`
+if [ -f $rcs/$pn/recipe ]; then
+    . $rcs/$pn/recipe
+elif [ ! -d $rcs ]; then
+    git clone $gitrcs $rcs
+    . $rcs/$pn/recipe
+else
+    echo "$pn: recipe: file not found"; exit
+fi
+
+if [ -z "$p" ]; then p=$n-$v; fi
 
 pkg=$pkg/$n; mkdir -p $arc $pkg $src
 
@@ -66,15 +69,18 @@ if [ -d "$src/$p" ]; then cd $src/$p; else cd $src; fi
 export CHOST CFLAGS CXXFLAGS LDFLAGS MAKEFLAGS arc pkg rcs src n v u p
 export -f build; fakeroot -s $src/state build
 
-if [ -f "$rcs/system" ]; then
-    mkdir -p $pkg/$sys; cp $rcs/system $pkg/$sys/$n
+if [ -f "$rcs/$n/system" ]; then
+    mkdir -p $pkg/$sys; cp $rcs/$n/system $pkg/$sys/$n
 fi
 
 cd $pkg; mkdir -p $pkg/{$inf,$lst}
 echo "n=$n" >> $pkg/$inf/$n
 echo "v=$v" >> $pkg/$inf/$n
+echo "s=$s" >> $pkg/$inf/$n
+_d="("; for dep in ${d[@]}; do _d+="$dep "; done; _d+=")"
+echo "d=${_d}" >> $pkg/$inf/$n
 echo "u=$u" >> $pkg/$inf/$n
 find -L ./ | sed 's/.\//\//' | sort > $pkg/$lst/$n
 
-fakeroot -i $src/state -- tar -cpJf $arc/$n-$v.pkg.tar.xz ./
+fakeroot -i $src/state -- tar -cpJf $arc/$n-$v.$pkgext ./
 rm -rf $src/state $pkg $src

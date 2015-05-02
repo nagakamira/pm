@@ -8,29 +8,37 @@
 for i in $@; do
     case "$i" in
         -h|--help)
-            echo "usage: `basename $0` <recipe> <arcdir>"
+            echo "usage: `basename $0` <name>"
             exit 0;;
     esac
 done
 
-if [ -z "$1" ]; then $0 -h; exit 0; else rcs=$1; arc=$2; fi;
+if [ -z "$1" ]; then $0 -h; exit 0; else pn=$1; fi;
 
-. $rcs; pn=$n; v1=$v; v=
-. $inf/$pn; v2=$v; v=
+if [ -f $rcs/$pn/recipe ]; then
+    . $rcs/$pn/recipe; v1=$v; v=
+elif [ ! -d $rcs ]; then
+    git clone $gitrcs $rcs
+    . $rcs/$pn/recipe; v1=$v; v=
+else
+    echo "$pn: recipe: file not found"; exit 1
+fi
+
+. $inf/$n; v2=$v; v=
 v=$(echo -e "$v1\n$v2" | sort -V | tail -n1)
 
 if [ "$v1" != "$v2" ]; then
     if [ "$v1" = "$v" ]; then
-        echo "updating: $pn ($v2 -> $v1)"
+        echo "updating: $n ($v2 -> $v1)"
 
-        if [ -f "$sys/$pn" ]; then . $sys/$pn
+        if [ -f "$sys/$n" ]; then . $sys/$n
             if type upd_ >/dev/null 2>&1; then upd_; fi
         fi
 
-        rn=$lst/$pn; cp $rn $rn.bak
+        rn=$lst/$n; cp $rn $rn.bak
 
-        if [ -f $arc/$pn-$v.pkg.tar.xz ]; then
-            tar -C $root -xpf $arc/$pn-$v.pkg.tar.xz
+        if [ -f $arc/$n-$v.$pkgext ]; then
+            tar -C $root -xpf $arc/$n-$v.$pkgext
         fi
 
         list=$(comm -23 <(sort $rn.bak) <(sort $rn))
@@ -46,11 +54,11 @@ if [ "$v1" != "$v2" ]; then
 
         rm $rn.bak
 
-        if [ -f "$sys/$pn" ]; then . $sys/$pn
+        if [ -f "$sys/$n" ]; then . $sys/$n
             if type _upd >/dev/null 2>&1; then _upd; fi
         fi
 
         if [ ! -d $root/$log ]; then mkdir -p $root/$log; fi
-        echo "[$(date +%Y-%m-%d) $(date +%H:%M)] [UPD] $pn ($v)" >> $log/upd
+        echo "[$(date +%Y-%m-%d) $(date +%H:%M)] [UPD] $n ($v)" >> $log/upd
     fi
 fi

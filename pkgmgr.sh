@@ -24,6 +24,8 @@ PkgInf() {
 
         echo "program: $n"
         echo "version: $v"
+        echo "section: $s"
+        echo "depends: ${d[@]}"
         if [ -n "$u" ]; then
             echo "address: $u"
         fi

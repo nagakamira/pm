@@ -56,7 +56,7 @@ PkgOwn() {
 }
 
 GrpLst() {
-    plst()
+    plst=()
     for _pkg in $(ls $inf); do
         if [ -f $inf/$_pkg ]; then
             . $inf/$_pkg

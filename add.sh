@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -e
 
 # Copyright 2015 Ali Caliskan <ali.h.caliskan at gmail.com>
 # Add is licenced under the GPLv3: http://gplv3.fsf.org
@@ -51,8 +51,12 @@ for dep in ${deps[@]}; do
     . $rcs/$dep/recipe; export n v
     if [ -f "$root/$inf/$n" ]; then continue; fi
 
-    echo "installing: $n-$v"
-    tar -C $root -xpf $arc/$n-$v.$pkgext
+    if [ -f $arc/$n-$v.$pkgext ]; then
+        echo "installing: $n-$v"
+        tar -C $root -xpf $arc/$n-$v.$pkgext
+    else
+        echo "$n: archive file not found"; exit 1;
+    fi
 
     if [ "$grpsys" = false ]; then
         if [ -f "$root/$sys/$n" ]; then . $root/$sys/$n

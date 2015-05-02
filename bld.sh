@@ -77,8 +77,8 @@ cd $pkg; mkdir -p $pkg/{$inf,$lst}
 echo "n=$n" >> $pkg/$inf/$n
 echo "v=$v" >> $pkg/$inf/$n
 echo "s=$s" >> $pkg/$inf/$n
-_d="("; for dep in ${d[@]}; do _d+="$dep "; done; _d+=")"
-echo "d=${_d}" >> $pkg/$inf/$n
+printf "%s " "d=(${d[@]})" >> $pkg/$inf/$n
+echo -e "" >> $pkg/$inf/$n
 echo "u=$u" >> $pkg/$inf/$n
 find -L ./ | sed 's/.\//\//' | sort > $pkg/$lst/$n
 

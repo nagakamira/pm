@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -e
 
 # Copyright 2015 Ali Caliskan <ali.h.caliskan at gmail.com>
 # Upd is licenced under the GPLv3: http://gplv3.fsf.org

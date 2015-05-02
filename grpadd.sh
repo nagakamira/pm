@@ -33,7 +33,15 @@ plst=($(for i in ${plst[@]}; do echo $i; done | sort -u))
 
 for _pkg in ${plst[@]}; do
     . $rcs/$_pkg/recipe
-    add $n root=$root grpsys
+    if [ -f $arc/$n-$v.$pkgext ]; then
+        echo "installing: $n-$v"
+        tar -C $root -xpf $arc/$n-$v.$pkgext
+    else
+        echo "$n: archive file not found"; exit 1;
+    fi
+
+    if [ ! -d $root/$log ]; then mkdir -p $root/$log; fi
+    echo "[$(date +%Y-%m-%d) $(date +%H:%M)] [ADD] $n ($v)" >> $root/$log/add
 done
 
 for _pkg in ${plst[@]}; do

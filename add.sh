@@ -47,6 +47,8 @@ fi
 rdeps $pn
 deps=($(echo ${deps[@]} | tr ' ' '\n' | sort -u | tr '\n' ' '))
 
+echo "total package(s): ${deps[@]}"
+
 for dep in ${deps[@]}; do
     . $rcs/$dep/recipe; export n v
     if [ -f "$root/$inf/$n" ]; then continue; fi

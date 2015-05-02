@@ -57,19 +57,13 @@ PkgOwn() {
 
 GrpLst() {
     plst()
-
-    if [ ! -d $rcs ]; then git clone $gitrcs $rcs; fi
-
-    for _pkg in $(ls $rcs); do
-        if [ -f $rcs/$_pkg/recipe ]; then
-            . $rcs/$_pkg/recipe
+    for _pkg in $(ls $inf); do
+        if [ -f $inf/$_pkg ]; then
+            . $inf/$_pkg
         fi
- 
         if [ "$s" = "$name" ]; then plst+=($n); fi
     done
-
     plst=($(for i in ${plst[@]}; do echo $i; done | sort -u))
-
     echo "${plst[@]}"
 }
 

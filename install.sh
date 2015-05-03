@@ -10,9 +10,10 @@ for i in $@; do
     esac
 done
 
-if [ ! -d $root/pkg ]; then
-	mkdir -p $root/pkg/arc; chmod -R 777 $root/pkg
+if [ ! -d $root/pkg/arc ]; then
+	mkdir -p $root/pkg/arc
 fi
+chmod 777 $root/pkg/arc
 
 install -v -Dm755 add.sh $root/usr/bin/add
 install -v -Dm755 bld.sh $root/usr/bin/bld

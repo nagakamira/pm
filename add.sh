@@ -58,6 +58,7 @@ for dep in ${deps[@]}; do
     if [ -f $arc/$n-$v.$pkgext ]; then
         echo "installing: $n-$v"
         tar -C $root -xpf $arc/$n-$v.$pkgext
+        chmod 777 $root/pkg &>/dev/null
     else
         echo "$n-$v.$pkgext: file not found"; exit 1;
     fi

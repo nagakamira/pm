@@ -47,7 +47,8 @@ fi
 
 if [ -z "$p" ]; then p=$n-$v; fi
 
-_pkg=$pkg; pkg=$pkg/$n; mkdir -p $arc $pkg $src
+rcs=$rcs/$n; _pkg=$pkg; pkg=$pkg/$n
+mkdir -p $arc $pkg $src
 
 if [ -n "$u" ]; then _url=$u
     if [ "${#u[@]}" -gt "1" ]; then

@@ -88,4 +88,4 @@ echo "u=$u" >> $pkg/$inf/$n
 find -L ./ | sed 's/.\//\//' | sort > $pkg/$lst/$n
 
 fakeroot -i $src/state -- tar -cpJf $arc/$n-$v.$pkgext ./
-rm -rf $src/state $_pkg $src . /tmp/$n.recipe
+rm -rf $src/state $_pkg $src /tmp/$n.recipe

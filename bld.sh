@@ -74,8 +74,8 @@ if [ -d "$src/$p" ]; then cd $src/$p; else cd $src; fi
 export CHOST CFLAGS CXXFLAGS LDFLAGS MAKEFLAGS arc pkg rcs src n v u p
 export -f build; fakeroot -s $src/state build
 
-if [ -f "$rcs/$n/system" ]; then
-    mkdir -p $pkg/$sys; cp $rcs/$n/system $pkg/$sys/$n
+if [ -f "$rcs/system" ]; then
+    mkdir -p $pkg/$sys; cp $rcs/system $pkg/$sys/$n
 fi
 
 cd $pkg; mkdir -p $pkg/{$inf,$lst}

@@ -37,10 +37,14 @@ esac
 if [ -z "$1" ]; then $0 -h; exit 0; else pn=$1; fi;
 
 if [ -f $rcs/$pn/recipe ]; then
-    . $rcs/$pn/recipe
+    cp $rcs/$pn/recipe /tmp/$pn.recipe
+    sed -i -e "s#build() {#build() {\n    set -e#" /tmp/$pn.recipe
+    . /tmp/$pn.recipe
 elif [ ! -d $rcs ]; then
     git clone $gitrcs $rcs
-    . $rcs/$pn/recipe
+    cp $rcs/$pn/recipe /tmp/$pn.recipe
+    sed -i -e "s#build() {#build() {\n    set -e#" /tmp/$pn.recipe
+    . /tmp/$pn.recipe
 else
     echo "$pn: recipe: file not found"; exit
 fi
@@ -84,4 +88,4 @@ echo "u=$u" >> $pkg/$inf/$n
 find -L ./ | sed 's/.\//\//' | sort > $pkg/$lst/$n
 
 fakeroot -i $src/state -- tar -cpJf $arc/$n-$v.$pkgext ./
-rm -rf $src/state $_pkg $src
+rm -rf $src/state $_pkg $src . /tmp/$n.recipe

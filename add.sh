@@ -7,6 +7,7 @@
 
 grpsys=false
 deps=()
+_deps=()
 
 rdeps() {
     . $rcs/$1/recipe
@@ -47,9 +48,18 @@ fi
 rdeps $pn
 deps=($(echo ${deps[@]} | tr ' ' '\n' | sort -u | tr '\n' ' '))
 
-echo "total package(s): ${deps[@]}"
-
 for dep in ${deps[@]}; do
+    . $rcs/$dep/recipe; export n v
+    if [ -f "$root/$inf/$n" ]; then
+        continue
+    else
+    	_deps+=($n)
+    fi
+done
+
+echo "total package(s): ${_deps[@]}"
+
+for dep in ${_deps[@]}; do
     . $rcs/$dep/recipe; export n v
     if [ -f "$root/$inf/$n" ]; then
         echo "$n: already installed"; continue

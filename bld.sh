@@ -28,6 +28,12 @@ extract() {
     fi
 }
 
+include() {
+    cp $rcs/$pn/recipe /tmp/$pn.recipe
+    sed -i -e "s#build() {#build() {\n    set -e#" /tmp/$pn.recipe
+    . /tmp/$pn.recipe
+}
+
 case "$1" in
     -h|--help)
         echo "usage: `basename $0` <name>"
@@ -37,14 +43,10 @@ esac
 if [ -z "$1" ]; then $0 -h; exit 0; else pn=$1; fi;
 
 if [ -f $rcs/$pn/recipe ]; then
-    cp $rcs/$pn/recipe /tmp/$pn.recipe
-    sed -i -e "s#build() {#build() {\n    set -e#" /tmp/$pn.recipe
-    . /tmp/$pn.recipe
+    include
 elif [ ! -d $rcs ]; then
     git clone $gitrcs $rcs
-    cp $rcs/$pn/recipe /tmp/$pn.recipe
-    sed -i -e "s#build() {#build() {\n    set -e#" /tmp/$pn.recipe
-    . /tmp/$pn.recipe
+    include
 else
     echo "$pn: recipe: file not found"; exit
 fi

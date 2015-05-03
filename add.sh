@@ -51,13 +51,15 @@ echo "total package(s): ${deps[@]}"
 
 for dep in ${deps[@]}; do
     . $rcs/$dep/recipe; export n v
-    if [ -f "$root/$inf/$n" ]; then continue; fi
+    if [ -f "$root/$inf/$n" ]; then
+        echo "$n: already installed"; continue
+    fi
 
     if [ -f $arc/$n-$v.$pkgext ]; then
         echo "installing: $n-$v"
         tar -C $root -xpf $arc/$n-$v.$pkgext
     else
-        echo "$n: archive file not found"; exit 1;
+        echo "$n-$v.$pkgext: file not found"; exit 1;
     fi
 
     if [ "$grpsys" = false ]; then

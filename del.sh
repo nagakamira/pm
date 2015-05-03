@@ -42,7 +42,7 @@ if [ "$grpsys" = false ]; then
 fi
 
 if [ -f "$root/$lst/$n" ]; then
-    echo "removing: $n-$v"
+    echo "removing: $n ($v)"
     list=$(tac $root/$lst/$n)
 else
     continue

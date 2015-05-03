@@ -70,7 +70,7 @@ else
     p=./
 fi
 
-echo "building: $n-$v"
+echo "building: $n ($v)"
 if [ -d "$src/$p" ]; then cd $src/$p; else cd $src; fi
 
 export CHOST CFLAGS CXXFLAGS LDFLAGS MAKEFLAGS arc pkg rcs src n v u p

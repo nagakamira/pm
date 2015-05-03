@@ -61,12 +61,8 @@ echo "total package(s): ${_deps[@]}"
 
 for dep in ${_deps[@]}; do
     . $rcs/$dep/recipe; export n v
-    if [ -f "$root/$inf/$n" ]; then
-        echo "$n: already installed"; continue
-    fi
-
     if [ -f $arc/$n-$v.$pkgext ]; then
-        echo "installing: $n-$v"
+        echo "installing: $n ($v)"
         tar -C $root -xpf $arc/$n-$v.$pkgext
         chmod 777 $root/pkg &>/dev/null
     else

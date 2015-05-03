@@ -34,7 +34,7 @@ plst=($(for i in ${plst[@]}; do echo $i; done | sort -u))
 for _pkg in ${plst[@]}; do
     . $rcs/$_pkg/recipe
     if [ -f $arc/$n-$v.$pkgext ]; then
-        echo "installing: $n-$v"
+        echo "installing: $n ($v)"
         tar -C $root -xpf $arc/$n-$v.$pkgext
         chmod 777 $root/pkg &>/dev/null
     else

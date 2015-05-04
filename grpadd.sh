@@ -5,8 +5,6 @@
 
 . /etc/pkgmgr.conf
 
-plst=()
-
 for i in $@; do
     case "$i" in
         -h|--help)

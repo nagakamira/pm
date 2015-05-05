@@ -10,7 +10,10 @@ deps=()
 _deps=()
 
 rdeps() {
-    . $rcs/$1/recipe
+    if [ -f $rcs/$1/recipe ]; then
+        . $rcs/$1/recipe
+    fi
+
     deps=(${deps[@]} $1)
     for dep in ${d[@]}; do
         if [[ ${deps[*]} =~ $dep ]]; then
@@ -50,7 +53,7 @@ deps=($(echo ${deps[@]} | tr ' ' '\n' | sort -u | tr '\n' ' '))
 
 for dep in ${deps[@]}; do
     if [ ! -f $rcs/$dep/recipe ]; then
-        echo "$dep: recipe not found"; exit 1
+        mdeps+=($dep); echo "$dep: recipe: file not found"
     else
         . $rcs/$dep/recipe; export n v
         if [ -f "$root/$inf/$n" ]; then
@@ -60,6 +63,10 @@ for dep in ${deps[@]}; do
         fi
     fi
 done
+
+if [ "${#mdeps[@]}" -ge "1" ]; then
+    echo "missing deps: ${mdeps[@]}"; exit 1
+fi
 
 echo "total package(s): ${_deps[@]}"
 

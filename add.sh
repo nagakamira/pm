@@ -49,11 +49,15 @@ rdeps $pn
 deps=($(echo ${deps[@]} | tr ' ' '\n' | sort -u | tr '\n' ' '))
 
 for dep in ${deps[@]}; do
-    . $rcs/$dep/recipe; export n v
-    if [ -f "$root/$inf/$n" ]; then
-        continue
+    if [ ! -f $rcs/$dep/recipe ]; then
+        echo "$dep: recipe not found"; exit 1
     else
-    	_deps+=($n)
+        . $rcs/$dep/recipe; export n v
+        if [ -f "$root/$inf/$n" ]; then
+            continue
+        else
+    	   _deps+=($n)
+        fi
     fi
 done
 

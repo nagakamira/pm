@@ -6,6 +6,7 @@
 . /etc/pkgmgr.conf
 
 grpsys=false
+nodeps=false
 deps=()
 _deps=()
 
@@ -32,6 +33,8 @@ for i in $@; do
             exit 0;;
         grpsys)
             grpsys=true;;
+        nodeps)
+            nodeps=true;;
         root=*)
             root=${i#*=};;
     esac
@@ -50,6 +53,8 @@ fi
 
 rdeps $pn
 deps=($(echo ${deps[@]} | tr ' ' '\n' | sort -u | tr '\n' ' '))
+
+if [ "$nodeps" = true ]; then deps=($pn); fi
 
 for dep in ${deps[@]}; do
     if [ ! -f $rcs/$dep/recipe ]; then

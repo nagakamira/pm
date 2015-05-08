@@ -24,7 +24,12 @@ else
     echo "$pn: recipe: file not found"; exit 1
 fi
 
-. $inf/$n; v2=$v; v=
+if [ -f $inf/$n ]; then
+    . $inf/$n; v2=$v; v=
+else
+    echo "$n: info: file not found"; exit 1
+fi
+
 v=$(echo -e "$v1\n$v2" | sort -V | tail -n1)
 
 if [ "$v1" != "$v2" ]; then

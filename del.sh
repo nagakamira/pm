@@ -33,6 +33,7 @@ if [ "$grpsys" = false ]; then
     if [ -f "$root/$sys/$n" ]; then
         . $root/$sys/$n
         if type _del >/dev/null 2>&1; then export -f _del; fi
+        if type _add >/dev/null 2>&1; then export -f _add; fi
         if [ "$root" != "/" ]; then chroot $root /bin/sh -c \
             ". $sys/$n; if type del_ >/dev/null 2>&1; then del_; fi"
         else

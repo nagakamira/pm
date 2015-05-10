@@ -73,7 +73,11 @@ if [ "${#mdeps[@]}" -ge "1" ]; then
     echo "missing deps: ${mdeps[@]}"; exit 1
 fi
 
-echo "total package(s): ${_deps[@]}"
+if [ "${#_deps[@]}" -le "0" ]; then
+    _deps=("$pn"); echo "$pn: reinstalling"
+else
+    echo "total package(s): ${_deps[@]}"
+fi
 
 for dep in ${_deps[@]}; do
     . $rcs/$dep/recipe; export n v

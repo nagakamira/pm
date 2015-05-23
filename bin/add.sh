@@ -27,7 +27,9 @@ rdeps() {
 for i in $@; do
     case "$i" in
         -h|--help)
-            echo "usage: `basename $0` <name> (root=)"
+            echo "usage:"
+            echo "  `basename $0` <name> (root=)         add a package"
+            echo "  `basename $0` <name> nodeps (root=)  skip dependencies"
             exit 0;;
         grpsys)
             grpsys=true;;

@@ -7,8 +7,6 @@
 
 grpsys=false
 nodeps=false
-deps=()
-_deps=()
 
 rdeps() {
     if [ -f $rcs/$1/recipe ]; then
@@ -78,14 +76,22 @@ if [ "${#_deps[@]}" -le "0" ]; then _deps=($pn); fi
 echo "total package(s): ${_deps[@]}"
 
 for dep in ${_deps[@]}; do
-    . $rcs/$dep/recipe; export n v
-    if [ -f $arc/$n-$v.$pkgext ]; then
-        echo "installing: $n ($v)"
-        tar -C $root -xpf $arc/$n-$v.$pkgext
-        chmod 777 $root/pkg &>/dev/null
-    else
-        echo "$n-$v.$pkgext: file not found"; exit 1;
+    . $rcs/$dep/recipe;
+    if [ ! -f $arc/$n-$v.$pkgext ]; then
+        echo "$n-$v.$pkgext: file not found"
+        _pkg+=($n)
     fi
+done
+
+if [ "${#_pkg[@]}" -ge "1" ]; then
+    echo "missing archive(s): ${_pkg[@]}"; exit 1
+fi
+
+for dep in ${_deps[@]}; do
+    . $rcs/$dep/recipe; export n v
+    echo "installing: $n ($v)"
+    tar -C $root -xpf $arc/$n-$v.$pkgext
+    chmod 777 $root/pkg &>/dev/null
 
     if [ "$grpsys" = false ]; then
         if [ -f "$root/$sys/$n" ]; then . $root/$sys/$n

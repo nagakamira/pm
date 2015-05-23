@@ -1,4 +1,4 @@
-#!/bin/bash -e
+#!/bin/bash
 
 # Copyright 2015 Ali Caliskan <ali.h.caliskan at gmail.com>
 # GrpBld is licenced under the GPLv3: http://gplv3.fsf.org

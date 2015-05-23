@@ -15,15 +15,13 @@ if [ ! -d $root/pkg/arc ]; then
 fi
 chmod 777 $root/pkg/{,arc}
 
-install -v -Dm755 add.sh $root/usr/bin/add
-install -v -Dm755 bld.sh $root/usr/bin/bld
-install -v -Dm755 del.sh $root/usr/bin/del
-install -v -Dm755 upd.sh $root/usr/bin/upd
+for _bin in add bld con del grp inf lst own upd pkgmgr; do
+	install -v -Dm755 bin/${_bin}.sh $root/usr/bin/${_bin}
+done
 
-install -v -Dm755 grpadd.sh $root/usr/bin/grpadd
-install -v -Dm755 grpbld.sh $root/usr/bin/grpbld
-install -v -Dm755 grpdel.sh $root/usr/bin/grpdel
-install -v -Dm755 grpupd.sh $root/usr/bin/grpupd
+for _bin in add bld del upd; do
+	install -v -Dm755 bin/grp${_bin}.sh $root/usr/bin/grp${_bin}
+done
 
-install -v -Dm755 pkgmgr.sh $root/usr/bin/pkgmgr
-install -v -Dm644 pkgmgr.rc $root/etc/pkgmgr.conf
+install -v -Dm644 conf/pkgmgr $root/etc/pkgmgr.conf
+install -v -Dm644 sample/recipe $root/usr/share/pkgmgr/recipe

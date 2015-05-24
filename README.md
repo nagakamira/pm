@@ -111,7 +111,7 @@ or
 
 	pkgmgr -g base
 
-If you wan to know how many groups there are, run:
+If you want to know how many groups there are, run:
 
 	grp lstgrp
 or

@@ -22,7 +22,7 @@ The GNU/Linux community is driven by a strong and cohesive force that brings for
 
 <h3>Building package(s)
 
-To build a package you need to create the /pkg/rcs directory so that it to contain the recipe file. For instance, if you want to build grep, just create /pkg/rcs/grep directory and save the recipe file as "recipe" inside it. /pkg/rcs/grep/recipe should look like this:
+To build a package you need to create the /pkg/rcs directory so that it contains the recipe file. If there is no /pkg/rcs directory, the package manager will automatically clone recipes from https://github.com/selflex/recipes-pkgmgr and populate /pkg/rcs with subdirectories containing recipes. But if you want to do it yourself, just create /pkg/rcs/grep directory and save the recipe file as "recipe" inside it. /pkg/rcs/grep/recipe should look like this:
 
 	n=grep
 	v=2.21
@@ -38,7 +38,7 @@ To build a package you need to create the /pkg/rcs directory so that it to conta
 	    rm -f $pkg/usr/share/info/dir
 	}
 
-The source information has letters that stands for: (n)ame, (v)ersion, (s)ection, (d)ependency and (u)rl. The order is not important, and if there is no package dependency, then d can be omitted. To build the grep package, simply run:
+The source information has letters that stands for: (n)ame, (v)ersion, (s)ection, (d)ependency and (u)rl. The order is not important, and if there is no package dependency, then d can be omitted. The package manager does automatically cd to ~/build/src/grep-2.21. If you want to cd $src directory, then add "p=./", which stands for (p)ath. $pkg defaults to ~/build/pkg/grep-2.21. The configuration file is stored at /etc/pkgmgr.conf, and can be customized if needed. Now, to build the grep package, simply run:
 
 	bld grep
 or

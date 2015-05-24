@@ -41,13 +41,13 @@ To build a package you need to create the /pkg/rcs directory so that it to conta
 The source information has letters that stands for: (n)ame, (v)ersion, (s)ection, (d)ependency and (u)rl. The order is not important, and if there is no package dependency, then d can be omitted. To build the grep package, simply run:
 
 	bld grep
-or
+or:
 	pkgmgr -b grep
 
 The package manager will build and compress the package into /pkg/arc/ directory as grep-2.21.pkg.tar.xz. If you have more than one recipes that have the same section, ie base, you can simply build them altogether by using grpbld:
 
 	grpbld base
-or
+or:
 	pkgmgr -B base
 
 <h3>Managing package(s)
@@ -55,35 +55,35 @@ or
 Now that you have successfully built the grep package, you might want to install it by typing:
 
 	add grep
-or
+or:
 	pkgmgr -a grep
 
 If you want to install the group of packages you've built, then type:
 
 	grpadd base
-or
+or:
 	pkgmgr -A base
 
 If you want to remove grep from your system:
 
 	del grep
-or
+or:
 	pkgmgr -d grep
 
 Removing group of packages are easily done like this:
 
 	grpdel base
-or
+or:
 	pkgmgr -D base
 
 Say that grep has a newer release and you have built it and want to update it. Just run:
 
 	upd grep
-or
+or:
 	pkgmgr -u grep
 
 Updating group of packages works like this:
 
 	grpupd base
-or
+or:
 	pkgmgr -U base

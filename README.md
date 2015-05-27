@@ -22,7 +22,7 @@ The GNU/Linux community is driven by a strong and cohesive force that brings for
 
 <h3>Building package(s)
 
-To build a package you need to create the /pkg/rcs directory so that it contains the recipe file. If there is no /pkg/rcs directory, Pan will automatically clone recipes from https://github.com/selflex/recipes-pan and populate /pkg/rcs with subdirectories containing recipes. But if you want to do it yourself, just create /pkg/rcs/grep directory and save the recipe file as "recipe" inside it. /pkg/rcs/grep/recipe should look like this:
+To build a package you need to create the /pkg/rcs directory so that it contains the recipe file. If there is no /pkg/rcs directory, Pan will automatically clone recipes from https://github.com/gnurama/recipes and populate /pkg/rcs with subdirectories containing recipes. But if you want to do it yourself, just create /pkg/rcs/grep directory and save the recipe file as "recipe" inside it. /pkg/rcs/grep/recipe should look like this:
 
 	n=grep
 	v=2.21

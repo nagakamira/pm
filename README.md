@@ -1,26 +1,26 @@
 # Pan
 A simple package manager
 
-<h3>Objectives
+<h3>Objectives</h3>
 
 	Be close to the source when building it.
 	Reduce any layers or abstractions.
 	Provide minimal tools for maintenance.
 	Keep the system clean, simple and personal.
 
-<h3>Rationale
+<h3>Rationale</h3>
 
 Pan stems from the principle that GNU/Linux user experience can be both fun and educational, once the user is able to utilise the development tools that creates a unique and personal operating system. Building and managing a free and open-source software should be simple and easy with Pan, without any complexities or abstractions, so that everyone can benefit from it.
 
 The GNU/Linux community is driven by a strong and cohesive force that brings forth a fully functional operating system containing lots of packages. Packages, like the cells in every organism, are the building blocks of GNU/Linux. Once the desired packages are built, one can distribute an entire operating system targeting various platforms and user bases. Pan, not only gives you the opportunity to build packages, but also helps you distribute them and build the GNU/Linux operating system from scratch.
 
-<h3>Installing Pan
+<h3>Installing Pan</h3>
 
 	git clone https://github.com/selflex/pan.git
 	cd pan
 	sudo ./install.sh
 
-<h3>Building package(s)
+<h3>Building package(s)</h3>
 
 To build a package you need to create the /pkg/rcs directory so that it contains the recipe file. If there is no /pkg/rcs directory, Pan will automatically clone recipes from https://github.com/gnurama/recipes and populate /pkg/rcs with subdirectories containing recipes. But if you want to do it yourself, just create /pkg/rcs/grep directory and save the recipe file as "recipe" inside it. /pkg/rcs/grep/recipe should look like this:
 
@@ -52,7 +52,7 @@ or
 
 	pan -B base
 
-<h3>Managing package(s)
+<h3>Managing package(s)</h3>
 
 Now that you have successfully built the grep package, you might want to install it by typing:
 

@@ -16,4 +16,4 @@ CXXFLAGS="$CFLAGS"
 LDFLAGS="-Wl,-O1,--sort-common,--as-needed,-z,relro"
 MAKEFLAGS="-j9"
 
-gitrcs=https://github.com/selflex/recipes-pkgmgr.git
+gitrcs=https://github.com/gnurama/recipes.git

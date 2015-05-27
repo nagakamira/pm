@@ -3,7 +3,7 @@
 # Copyright 2015 Ali Caliskan <ali.h.caliskan at gmail.com>
 # Bld is licenced under the GPLv3: http://gplv3.fsf.org
 
-. /etc/pkgmgr.conf
+. /etc/pan.conf
 
 download() {
     if [ ! "${_url%://*}" = "git" ]; then

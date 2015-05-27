@@ -3,7 +3,7 @@
 # Copyright 2015 Ali Caliskan <ali.h.caliskan at gmail.com>
 # Inf is licenced under the GPLv3: http://gplv3.fsf.org
 
-. /etc/pkgmgr.conf
+. /etc/pan.conf
 
 for i in $@; do
     case "$i" in

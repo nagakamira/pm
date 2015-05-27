@@ -3,7 +3,7 @@
 # Copyright 2015 Ali Caliskan <ali.h.caliskan at gmail.com>
 # Con is licenced under the GPLv3: http://gplv3.fsf.org
 
-. /etc/pkgmgr.conf
+. /etc/pan.conf
 
 out=/tmp/out.txt
 

@@ -10,7 +10,7 @@ A simple package manager
 
 <h3>Rationale
 
-The package manager stems from the principle that GNU/Linux user experience can be both fun and educational, once the user is able to utilise the development tools that creates a unique and personal operating system. Building and managing a free and open-source software should be simple and easy with the Pan package manager, without any complexities or abstractions, so that everyone can benefit from it.
+Pan stems from the principle that GNU/Linux user experience can be both fun and educational, once the user is able to utilise the development tools that creates a unique and personal operating system. Building and managing a free and open-source software should be simple and easy with Pan, without any complexities or abstractions, so that everyone can benefit from it.
 
 The GNU/Linux community is driven by a strong and cohesive force that brings forth a fully functional operating system containing lots of packages. Packages, like the cells in every organism, are the building blocks of GNU/Linux. Once the desired packages are built, one can distribute an entire operating system targeting various platforms and user bases. Pan, not only gives you the opportunity to build packages, but also helps you distribute them and build the GNU/Linux operating system from scratch.
 
@@ -45,7 +45,7 @@ or
 
 	pan -b grep
 
-The package manager will build and compress the package into /pkg/arc/ directory as grep-2.21.pkg.tar.xz. If you have more than one recipes that have the same section, ie base, you can simply build them altogether by using grpbld:
+Pan will build and compress the package into /pkg/arc/ directory as grep-2.21.pkg.tar.xz. If you have more than one recipes that have the same section, ie base, you can simply build them altogether by using grpbld:
 
 	grpbld base
 or

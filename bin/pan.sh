@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Copyright 2015 Ali Caliskan <ali.h.caliskan at gmail.com>
-# Pkgmgr is licenced under the GPLv3: http://gplv3.fsf.org
+# Pan is licenced under the GPLv3: http://gplv3.fsf.org
 
 for i in $@; do
     case "$i" in

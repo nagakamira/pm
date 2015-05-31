@@ -5,6 +5,24 @@
 
 . /etc/pan.conf
 
+Inf() {
+    if [ -f $inf/$name ]; then
+        . $inf/$name
+
+        echo "program: $n"
+        echo "version: $v"
+        echo "section: $s"
+        echo "depends: ${d[@]}"
+        if [ -n "$u" ]; then
+            echo "address: $u"
+        fi
+    else
+        if [ -n "$name" ]; then
+            echo "$name: info not found"
+        fi
+    fi
+}
+
 for i in $@; do
     case "$i" in
         -h|--help)
@@ -13,20 +31,4 @@ for i in $@; do
     esac
 done
 
-if [ -z "$1" ]; then $0 -h; exit 0; else name=$1; fi;
-
-if [ -f $inf/$name ]; then
-    . $inf/$name
-
-    echo "program: $n"
-    echo "version: $v"
-    echo "section: $s"
-    echo "depends: ${d[@]}"
-    if [ -n "$u" ]; then
-        echo "address: $u"
-    fi
-else
-    if [ -n "$name" ]; then
-        echo "$name: info not found"
-    fi
-fi
+if [ -z "$1" ]; then $0 -h; exit 0; else name=$1; Inf; fi

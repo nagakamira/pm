@@ -5,6 +5,15 @@
 
 . /etc/pan.conf
 
+Own() {
+	if [ -n "$path" ]; then
+    	_own=$(grep $path $lst/*)
+    	for ln in $_own; do
+        	echo "${ln#$lst/}"
+    	done
+	fi
+}
+
 for i in $@; do
     case "$i" in
         -h|--help)
@@ -13,11 +22,4 @@ for i in $@; do
     esac
 done
 
-if [ -z "$1" ]; then $0 -h; exit 0; else path=$1; fi;
-
-if [ -n "$path" ]; then
-    _own=$(grep $path $lst/*)
-    for ln in $_own; do
-        echo "${ln#$lst/}"
-    done
-fi
+if [ -z "$1" ]; then $0 -h; exit 0; else path=$1; Own; fi

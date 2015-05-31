@@ -5,6 +5,16 @@
 
 . /etc/pan.conf
 
+Lst() {
+    if [ -n "$name" ]; then
+        if [ -f $lst/$name ]; then
+            cat $lst/$name
+        else
+            echo "$name: filelist not found"
+        fi
+    fi
+}
+
 for i in $@; do
     case "$i" in
         -h|--help)
@@ -13,12 +23,4 @@ for i in $@; do
     esac
 done
 
-if [ -z "$1" ]; then $0 -h; exit 0; else name=$1; fi;
-
-if [ -n "$name" ]; then
-    if [ -f $lst/$name ]; then
-        cat $lst/$name
-    else
-        echo "$name: filelist not found"
-    fi
-fi
+if [ -z "$1" ]; then $0 -h; exit 0; else name=$1; Lst; fi

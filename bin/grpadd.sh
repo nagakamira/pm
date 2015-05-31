@@ -5,6 +5,46 @@
 
 . /etc/pan.conf
 
+GrpAdd() {
+    if [ ! -d $rcs ]; then git clone $gitrcs $rcs; fi
+
+    for _pkg in $(ls $rcs); do
+        if [ -f $rcs/$_pkg/recipe ]; then
+            . $rcs/$_pkg/recipe
+        fi
+ 
+        if [ "$s" = "$gn" ]; then plst+=($n); fi
+    done
+
+    plst=($(for i in ${plst[@]}; do echo $i; done | sort -u))
+
+    for _pkg in ${plst[@]}; do
+        . $rcs/$_pkg/recipe
+        if [ -f $arc/$n-$v.$pkgext ]; then
+            echo "installing: $n ($v)"
+            tar -C $root -xpf $arc/$n-$v.$pkgext
+            chmod 777 $root/pkg &>/dev/null
+        else
+            echo "$n: archive file not found"; exit 1;
+        fi
+
+        if [ ! -d $root/$log ]; then mkdir -p $root/$log; fi
+        echo "[$(date +%Y-%m-%d) $(date +%H:%M)] [ADD] $n ($v)" >> $root/$log/add
+    done
+
+    for _pkg in ${plst[@]}; do
+        . $rcs/$_pkg/recipe; export n v
+        if [ -f "$root/$sys/$n" ]; then . $root/$sys/$n
+            if [ "$root" != "/" ]; then chroot $root /bin/sh -c \
+                ". $sys/$n; if type _add >/dev/null 2>&1; then _add; fi"
+            else
+                if type _add >/dev/null 2>&1; then _add; fi
+            fi
+        fi
+    done
+    plst=()
+}
+
 for i in $@; do
     case "$i" in
         -h|--help)
@@ -15,41 +55,9 @@ for i in $@; do
     esac
 done
 
-if [ -z "$1" ]; then $0 -h; exit 0; else gn=$1; fi;
+if [ -z "$1" ]; then $0 -h; exit 0; fi
 
-if [ ! -d $rcs ]; then git clone $gitrcs $rcs; fi
-
-for _pkg in $(ls $rcs); do
-    if [ -f $rcs/$_pkg/recipe ]; then
-        . $rcs/$_pkg/recipe
-    fi
- 
-    if [ "$s" = "$gn" ]; then plst+=($n); fi
-done
-
-plst=($(for i in ${plst[@]}; do echo $i; done | sort -u))
-
-for _pkg in ${plst[@]}; do
-    . $rcs/$_pkg/recipe
-    if [ -f $arc/$n-$v.$pkgext ]; then
-        echo "installing: $n ($v)"
-        tar -C $root -xpf $arc/$n-$v.$pkgext
-        chmod 777 $root/pkg &>/dev/null
-    else
-        echo "$n: archive file not found"; exit 1;
-    fi
-
-    if [ ! -d $root/$log ]; then mkdir -p $root/$log; fi
-    echo "[$(date +%Y-%m-%d) $(date +%H:%M)] [ADD] $n ($v)" >> $root/$log/add
-done
-
-for _pkg in ${plst[@]}; do
-    . $rcs/$_pkg/recipe; export n v
-    if [ -f "$root/$sys/$n" ]; then . $root/$sys/$n
-        if [ "$root" != "/" ]; then chroot $root /bin/sh -c \
-            ". $sys/$n; if type _add >/dev/null 2>&1; then _add; fi"
-        else
-            if type _add >/dev/null 2>&1; then _add; fi
-        fi
-    fi
+for i in $@; do
+    if [ "${i%=*}" = "root" ]; then continue; fi
+    gn=$i; GrpAdd
 done

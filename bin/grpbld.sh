@@ -5,6 +5,31 @@
 
 . /etc/pan.conf
 
+GrpBld() {
+    if [ ! -d $rcs ]; then git clone $gitrcs $rcs; fi
+
+    for _pkg in $(ls $rcs); do
+        if [ -f $rcs/$_pkg/recipe ]; then
+            . $rcs/$_pkg/recipe
+        fi
+ 
+        if [ "$s" = "$gn" ]; then plst+=($n); fi
+    done
+
+    plst=($(for i in ${plst[@]}; do echo $i; done | sort -u))
+
+    for _pkg in ${plst[@]}; do
+        . $rcs/$_pkg/recipe
+        if [ ! -f /tmp/$_pkg.$gn ]; then
+            bld $_pkg
+            if [ $? -eq 0 ]; then
+                touch /tmp/$_pkg.$gn
+            fi
+        fi
+    done
+    plst=()
+}
+
 for i in $@; do
     case "$i" in
         -h|--help)
@@ -13,26 +38,8 @@ for i in $@; do
     esac
 done
 
-if [ -z "$1" ]; then $0 -h; exit 0; else gn=$1; fi;
+if [ -z "$1" ]; then $0 -h; exit 0; fi
 
-if [ ! -d $rcs ]; then git clone $gitrcs $rcs; fi
-
-for _pkg in $(ls $rcs); do
-    if [ -f $rcs/$_pkg/recipe ]; then
-        . $rcs/$_pkg/recipe
-    fi
- 
-    if [ "$s" = "$gn" ]; then plst+=($n); fi
-done
-
-plst=($(for i in ${plst[@]}; do echo $i; done | sort -u))
-
-for _pkg in ${plst[@]}; do
-    . $rcs/$_pkg/recipe
-    if [ ! -f /tmp/$_pkg.$gn ]; then
-        bld $_pkg
-        if [ $? -eq 0 ]; then
-            touch /tmp/$_pkg.$gn
-        fi
-    fi
+for i in $@; do
+    gn=$i; GrpBld
 done

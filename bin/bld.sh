@@ -34,60 +34,62 @@ include() {
     . /tmp/$pn.recipe
 }
 
+Bld() {
+    if [ -f $rcs/$pn/recipe ]; then
+        include
+    elif [ ! -d $rcs ]; then
+        git clone $gitrcs $rcs
+        include
+    else
+        echo "$pn: recipe: file not found"; exit
+    fi
+
+    if [ -z "$p" ]; then p=$n-$v; fi
+
+    rcs=$rcs/$n; _pkg=$pkg; pkg=$pkg/$n
+    mkdir -p $arc $pkg $src
+
+    if [ -n "$u" ]; then _url=$u
+        if [ "${#u[@]}" -gt "1" ]; then
+            for _u in "${u[@]}"; do
+                download $_u
+                extract
+            done
+        else
+            download $u
+            extract
+        fi
+    else
+        p=./
+    fi
+
+    echo "building: $n ($v)"
+    if [ -d "$src/$p" ]; then cd $src/$p; else cd $src; fi
+
+    export CHOST CFLAGS CXXFLAGS LDFLAGS MAKEFLAGS arc pkg rcs src n v u p
+    export -f build; fakeroot -s $src/state build
+
+    if [ -f "$rcs/system" ]; then
+        mkdir -p $pkg/$sys; cp $rcs/system $pkg/$sys/$n
+    fi
+
+    cd $pkg; mkdir -p $pkg/{$inf,$lst}
+    echo "n=$n" >> $pkg/$inf/$n
+    echo "v=$v" >> $pkg/$inf/$n
+    echo "s=$s" >> $pkg/$inf/$n
+    printf "%s " "d=(${d[@]})" >> $pkg/$inf/$n
+    echo -e "" >> $pkg/$inf/$n
+    echo "u=$u" >> $pkg/$inf/$n
+    find -L ./ | sed 's/.\//\//' | sort > $pkg/$lst/$n
+
+    fakeroot -i $src/state -- tar -cpJf $arc/$n-$v.$pkgext ./
+    rm -rf $src/state $_pkg $src /tmp/$n.recipe
+}
+
 case "$1" in
     -h|--help)
         echo "usage: `basename $0` <name>"
         exit 0;;
 esac
 
-if [ -z "$1" ]; then $0 -h; exit 0; else pn=$1; fi;
-
-if [ -f $rcs/$pn/recipe ]; then
-    include
-elif [ ! -d $rcs ]; then
-    git clone $gitrcs $rcs
-    include
-else
-    echo "$pn: recipe: file not found"; exit
-fi
-
-if [ -z "$p" ]; then p=$n-$v; fi
-
-rcs=$rcs/$n; _pkg=$pkg; pkg=$pkg/$n
-mkdir -p $arc $pkg $src
-
-if [ -n "$u" ]; then _url=$u
-    if [ "${#u[@]}" -gt "1" ]; then
-        for _u in "${u[@]}"; do
-            download $_u
-            extract
-        done
-    else
-        download $u
-        extract
-    fi
-else
-    p=./
-fi
-
-echo "building: $n ($v)"
-if [ -d "$src/$p" ]; then cd $src/$p; else cd $src; fi
-
-export CHOST CFLAGS CXXFLAGS LDFLAGS MAKEFLAGS arc pkg rcs src n v u p
-export -f build; fakeroot -s $src/state build
-
-if [ -f "$rcs/system" ]; then
-    mkdir -p $pkg/$sys; cp $rcs/system $pkg/$sys/$n
-fi
-
-cd $pkg; mkdir -p $pkg/{$inf,$lst}
-echo "n=$n" >> $pkg/$inf/$n
-echo "v=$v" >> $pkg/$inf/$n
-echo "s=$s" >> $pkg/$inf/$n
-printf "%s " "d=(${d[@]})" >> $pkg/$inf/$n
-echo -e "" >> $pkg/$inf/$n
-echo "u=$u" >> $pkg/$inf/$n
-find -L ./ | sed 's/.\//\//' | sort > $pkg/$lst/$n
-
-fakeroot -i $src/state -- tar -cpJf $arc/$n-$v.$pkgext ./
-rm -rf $src/state $_pkg $src /tmp/$n.recipe
+if [ -z "$1" ]; then $0 -h; exit 0; else pn=$1; Bld; fi

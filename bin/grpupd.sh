@@ -5,28 +5,21 @@
 
 . /etc/pan.conf
 
-for i in $@; do
-    case "$i" in
-        -h|--help)
-            echo "usage: `basename $0` <group>"
-            exit 0;;
-    esac
-done
+GrpUpd() {
+    if [ ! -d $rcs ]; then git clone $gitrcs $rcs; fi
 
-if [ -z "$1" ]; then $0 -h; exit 0; else gn=$1; fi;
+    for _pkg in $(ls $rcs); do
+        if [ -f $rcs/$_pkg/recipe ]; then
+    	   . $rcs/$_pkg/recipe
+        fi
+        plst+=($n)
+    done
 
-if [ ! -d $rcs ]; then git clone $gitrcs $rcs; fi
+    plst=($(for i in ${plst[@]}; do echo $i; done | sort -u))
 
-for _pkg in $(ls $rcs); do
-    if [ -f $rcs/$_pkg/recipe ]; then
-    	. $rcs/$_pkg/recipe
-    fi
- 
-    if [ "$s" = "$gn" ]; then plst+=($n); fi
-done
+    for _pkg in ${plst[@]}; do
+        upd $_pkg
+    done
+}
 
-plst=($(for i in ${plst[@]}; do echo $i; done | sort -u))
-
-for _pkg in ${plst[@]}; do
-    upd $_pkg
-done
+GrpUpd

@@ -46,7 +46,7 @@ Upd() {
                 elif [ "$l" = "/" ]; then continue
                 elif [ -d $l ]; then rmdir $ign $l
                 fi
-            done
+            done | tac
 
             rm $rn.bak
 

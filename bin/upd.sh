@@ -39,12 +39,11 @@ Upd() {
 
             list=$(comm -23 <(sort $rn.bak) <(sort $rn))
 
-            ign="--ignore-fail-on-non-empty"
             for l in $list; do
                 if [ -L $l ]; then unlink $l
                 elif [ -f $l ]; then rm -f $l
                 elif [ "$l" = "/" ]; then continue
-                elif [ -d $l ]; then rmdir $ign $l
+                elif [ -d $l ]; then rm -r $l
                 fi
             done | tac
 

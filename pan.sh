@@ -188,7 +188,7 @@ Bld() {
 
     if [ -z "$p" ]; then p=$n-$v; fi
 
-    rcs=$rcs/$n; _pkg=$pkg; pkg=$pkg/$n
+    _rcs=$rcs; rcs=$rcs/$n; _pkg=$pkg; pkg=$pkg/$n
     mkdir -p $arc $pkg $src
 
     if [ -n "$u" ]; then _url=$u
@@ -226,6 +226,8 @@ Bld() {
 
     fakeroot -i $src/state -- tar -cpJf $arc/$n-$v.$pkgext ./
     rm -rf $src/state $_pkg $src /tmp/$n.recipe
+
+    rcs=$_rcs; pkg=$_pkg; p=
 }
 
 GrpBld() {

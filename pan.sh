@@ -165,7 +165,7 @@ extract() {
             if [ "${file##*.}" = "zip" ]; then
                 unzip -d $src $arc/$file
             elif [ "${file##*.}" = "gz" ]; then
-                if [ "${file##*.}" = "tar.gz" ]; then
+                if [ "${file##*[0-9].}" = "tar.gz" ]; then
                     tar -C $src -xpf $arc/$file
                 else
                     gunzip -c $arc/$file > $src/${file%.*}

@@ -162,13 +162,17 @@ extract() {
     if [ ! "${_url%://*}" = "git" ]; then
         if [ -z "$e" ]; then
             echo "extracting: $file"
-            if [ "${file##*.}" = "zip" ]; then
-                unzip -d $src $arc/$file
-            elif file --mime-type $file | grep -q gzip$; then
-                gunzip -c $arc/$file > $src/${file%.*}
-            else
-                tar -C $src -xpf $arc/$file
-            fi
+            case $file in
+                *.tar.bz2) tar -C $src -jxpf $arc/$file;;
+                *.bz2)     bzip2 -dc $arc/$file > $src/${file%.*};;
+                *.tar.xz)  tar -C $src -xpf $arc/$file;;
+                *.tar.gz)  tar -C $src -xpf $arc/$file;;
+                *.tgz)     tar -C $src -xpf $arc/$file;;
+                *.gz)      gunzip -c $arc/$file > $src/${file%.*};;
+                *.zip)     unzip -d $src $arc/$file;;
+                *.7z)      7za x $file -o$src;;
+                *)         echo "$file: not supported";;
+            esac
         fi
     fi
 }

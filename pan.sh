@@ -164,6 +164,12 @@ extract() {
             echo "extracting: $file"
             if [ "${file##*.}" = "zip" ]; then
                 unzip -d $src $arc/$file
+            elif [ "${file##*.}" = "gz" ]; then
+                if [ "${file##*.}" = "tar.gz" ]; then
+                    tar -C $src -xpf $arc/$file
+                else
+                    gunzip -c $arc/$file > $src/${file%.*}
+                fi
             else
                 tar -C $src -xpf $arc/$file
             fi
@@ -185,7 +191,7 @@ Bld() {
     if [ -f $rcs/$pn/recipe ]; then
         include
     else
-        echo "$pn: recipe: file not found"; exit
+        echo "$pn: recipe: file not found"; exit 1
     fi
 
     if [ -z "$p" ]; then p=$n-$v; fi

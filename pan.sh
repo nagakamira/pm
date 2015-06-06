@@ -178,6 +178,8 @@ include() {
 }
 
 Bld() {
+    set -e
+
     GetRcs
 
     if [ -f $rcs/$pn/recipe ]; then

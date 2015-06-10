@@ -22,7 +22,11 @@ _GrpUpd=false
 grpsys=false
 
 GetRcs() {
-    if [ ! -d $rcs ]; then git clone $gitrcs $rcs; fi
+    if [ ! -d $rcs ]; then
+    	git clone $gitrcs $rcs
+		chgrp -R users $rcs
+		chmod -R g+w $rcs
+	fi
 }
 
 PkgLst() {
@@ -470,7 +474,7 @@ Upd() {
 }
 
 GrpUpd() {
-    GetRcs
+    rm -rf $rcs; GetRcs
 
     for _pkg in $(ls $rcs); do
         if [ -f $rcs/$_pkg/recipe ]; then

@@ -63,7 +63,7 @@ Add() {
     if [ -f $rcs/$pn/recipe ]; then
         . $rcs/$pn/recipe
     else
-        echo "$pn: recipe: file not found"; exit 1
+        echo "$pn: recipe file not found"; exit 1
     fi
 
     RtDeps $pn
@@ -71,7 +71,7 @@ Add() {
 
     for dep in ${deps[@]}; do
         if [ ! -f $rcs/$dep/recipe ]; then
-            mdeps+=($dep); echo "$dep: recipe: file not found"
+            mdeps+=($dep); echo "$dep: recipe file not found"
         else
             . $rcs/$dep/recipe; export n v
             if [ -f "$root/$inf/$n" ]; then
@@ -195,7 +195,7 @@ Bld() {
     if [ -f $rcs/$pn/recipe ]; then
         include
     else
-        echo "$pn: recipe: file not found"; exit 1
+        echo "$pn: recipe file not found"; exit 1
     fi
 
     if [ -z "$p" ]; then p=$n-$v; fi
@@ -277,7 +277,7 @@ Del() {
     if [ -f $root/$inf/$pn ]; then
         . $root/$inf/$pn; export n v
     else
-        echo "$pn: info: file not found"; exit 1
+        echo "$pn: info file not found"; exit 1
     fi
 
     if [ "$grpsys" = false ]; then
@@ -426,13 +426,13 @@ Upd() {
     if [ -f $rcs/$pn/recipe ]; then
         . $rcs/$pn/recipe; v1=$v; v=
     else
-        echo "$pn: recipe: file not found"
+        echo "$pn: recipe file not found"
     fi
 
     if [ -f $inf/$n ]; then
         . $inf/$n; v2=$v; v=
     else
-        echo "$n: info: file not found"; continue
+        echo "$n: info file not found"; continue
     fi
 
     v=$(echo -e "$v1\n$v2" | sort -V | tail -n1)

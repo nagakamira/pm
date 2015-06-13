@@ -174,6 +174,7 @@ extract() {
                 *.tar.xz)  tar -C $src -xpf $arc/$file;;
                 *.tar.gz)  tar -C $src -xpf $arc/$file;;
                 *.tgz)     tar -C $src -xpf $arc/$file;;
+                *.tar)     tar -C $src -xpf $arc/$file;;
                 *.gz)      gunzip -c $arc/$file > $src/${file%.*};;
                 *.zip)     unzip -d $src $arc/$file;;
                 *.7z)      7za x $file -o$src;;

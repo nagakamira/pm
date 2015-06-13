@@ -20,6 +20,8 @@ _Own=false
 _Upd=false
 _GrpUpd=false
 grpsys=false
+NoExtract=false
+NoStrip=false
 
 GetRcs() {
     if [ ! -d $rcs ]; then
@@ -164,7 +166,7 @@ download() {
 
 extract() {
     if [ ! "${_url%://*}" = "git" ]; then
-        if [ -z "$e" ]; then
+        if [ "$NoExtract" = false ]; then
             echo "extracting: $file"
             case $file in
                 *.tar.bz2) tar -C $src -jxpf $arc/$file;;
@@ -199,6 +201,11 @@ Bld() {
     fi
 
     if [ -z "$p" ]; then p=$n-$v; fi
+
+    for opt in "${o[@]}"; do
+        if [ "$opt" = "noextract" ]; then NoExtract=true; fi
+        if [ "$opt" = "nostrip" ]; then NoStrip=true; fi
+    done
 
     _rcs=$rcs; rcs=$rcs/$n; _pkg=$pkg; pkg=$pkg/$n
     mkdir -p $arc $pkg $src
@@ -235,6 +242,19 @@ Bld() {
     echo -e "" >> $pkg/$inf/$n
     echo "u=$u" >> $pkg/$inf/$n
     find -L ./ | sed 's/.\//\//' | sort > $pkg/$lst/$n
+
+    if [ "$NoStrip" = false ]; then
+        find . -type f 2>/dev/null | while read binary; do
+            case "$(file -bi "$binary")" in
+                *application/x-sharedlib*)
+                    strip --strip-unneeded $binary;;
+                *application/x-archive*)
+                    strip --strip-debug $binary;;
+                *application/x-executable*)
+                    strip --strip-all $binary;;
+            esac
+        done
+    fi
 
     fakeroot -i $src/state -- tar -cpJf $arc/$n-$v.$pkgext ./
     rm -rf $src/state $_pkg $src /tmp/$n.recipe

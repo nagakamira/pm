@@ -43,6 +43,11 @@ PkgLst() {
     plst=($(for i in ${plst[@]}; do echo $i; done | sort -u))
 }
 
+GetPkg() {
+    echo "downloading: $1"
+    curl -f -L -o $arc/$1 $getpkg/$1
+}
+
 RtDeps() {
     if [ -f $rcs/$1/recipe ]; then
         . $rcs/$1/recipe
@@ -95,8 +100,11 @@ Add() {
     for dep in ${_deps[@]}; do
         . $rcs/$dep/recipe;
         if [ ! -f $arc/$n-$v.$pkgext ]; then
-            echo "$n-$v.$pkgext: file not found"
-            _pkg+=($n)
+            GetPkg $n-$v.$pkgext
+            if [ ! -f $arc/$n-$v.$pkgext ]; then
+                echo "$n-$v.$pkgext: file not found"
+                _pkg+=($n)
+            fi
         fi
     done
 
@@ -129,13 +137,24 @@ GrpAdd() {
 
     for _pkg in ${plst[@]}; do
         . $rcs/$_pkg/recipe
-        if [ -f $arc/$n-$v.$pkgext ]; then
-            echo "installing: $n ($v)"
-            tar -C $root -xpf $arc/$n-$v.$pkgext
-            chmod 777 $root/pkg &>/dev/null
-        else
-            echo "$n: archive file not found"; exit 1;
+        if [ ! -f $arc/$n-$v.$pkgext ]; then
+            GetPkg $n-$v.$pkgext
+            if [ ! -f $arc/$n-$v.$pkgext ]; then
+                echo "$n: archive file not found"
+                _pkg_+=($n)
+            fi
         fi
+    done
+
+    if [ "${#_pkg_[@]}" -ge "1" ]; then
+        echo "missing archive(s): ${_pkg_[@]}"; exit 1
+    fi
+
+    for _pkg in ${plst[@]}; do
+        . $rcs/$_pkg/recipe
+        echo "installing: $n ($v)"
+        tar -C $root -xpf $arc/$n-$v.$pkgext
+        chmod 777 $root/pkg &>/dev/null
 
         if [ ! -d $root/$log ]; then mkdir -p $root/$log; fi
         echo "[$(date +%Y-%m-%d) $(date +%H:%M)] [ADD] $n ($v)" >> $root/$log/add

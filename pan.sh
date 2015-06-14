@@ -82,7 +82,11 @@ Add() {
         else
             . $rcs/$dep/recipe; export n v
             if [ -f "$root/$inf/$n" ]; then
-                continue
+                if [ "$n" = "$pn" ]; then
+                    _deps+=($n)
+                else
+                    continue
+                fi
             else
                _deps+=($n)
             fi
@@ -92,10 +96,6 @@ Add() {
     if [ "${#mdeps[@]}" -ge "1" ]; then
         echo "missing deps: ${mdeps[@]}"; exit 1
     fi
-
-    if [ "${#_deps[@]}" -le "0" ]; then _deps=($pn); fi
-
-    #echo "total package(s): ${_deps[@]}"
 
     for dep in ${_deps[@]}; do
         . $rcs/$dep/recipe;

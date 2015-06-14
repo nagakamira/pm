@@ -21,7 +21,6 @@ _Upd=false
 _GrpUpd=false
 grpsys=false
 NoExtract=false
-NoStrip=false
 
 GetRcs() {
     if [ ! -d $rcs ]; then
@@ -225,7 +224,6 @@ Bld() {
 
     for opt in "${o[@]}"; do
         if [ "$opt" = "noextract" ]; then NoExtract=true; fi
-        if [ "$opt" = "nostrip" ]; then NoStrip=true; fi
     done
 
     _rcs=$rcs; rcs=$rcs/$n; _pkg=$pkg; pkg=$pkg/$n
@@ -264,21 +262,8 @@ Bld() {
     echo "u=$u" >> $pkg/$inf/$n
     find -L ./ | sed 's/.\//\//' | sort > $pkg/$lst/$n
 
-    if [ "$NoStrip" = false ]; then
-        find . -type f 2>/dev/null | while read binary; do
-            case "$(file -bi "$binary")" in
-                *application/x-sharedlib*)
-                    strip --strip-unneeded $binary;;
-                *application/x-archive*)
-                    strip --strip-debug $binary;;
-                *application/x-executable*)
-                    strip --strip-all $binary;;
-            esac
-        done
-    fi
-
     fakeroot -i $src/state -- tar -cpJf $arc/$n-$v.$pkgext ./
-    rm -rf $src/state $_pkg $src /tmp/$n.recipe
+    rm -rf $_pkg $src /tmp/$n.recipe
 
     rcs=$_rcs; pkg=$_pkg; p=
 }

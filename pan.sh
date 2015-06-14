@@ -36,9 +36,9 @@ PkgLst() {
         if [ -f $rcs/$_pkg/recipe ]; then
             . $rcs/$_pkg/recipe
         fi
-		if [ -z "$s" ]; then continue; fi
-	    if [ "$s" = "$gn" ]; then plst+=($n); fi
-	    unset s
+        if [ -z "$s" ]; then continue; fi
+        if [ "$s" = "$gn" ]; then plst+=($n); fi
+        unset s
     done
 
     plst=($(for i in ${plst[@]}; do echo $i; done | sort -u))

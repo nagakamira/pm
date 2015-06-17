@@ -284,7 +284,7 @@ Bld() {
 }
 
 GrpBld() {
-	set -e
+    set -e
 
     GetRcs; PkgLst
 

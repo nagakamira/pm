@@ -469,11 +469,6 @@ Upd() {
 
     if [ "$v1" != "$v2" ]; then
         if [ "$v1" = "$v" ]; then
-            echo "updating: $n ($v2 -> $v1)"
-
-            if [ -f "$sys/$n" ]; then . $sys/$n
-                if type upd_ >/dev/null 2>&1; then upd_; fi
-            fi
 
             if [ ! -f $arc/$n-$v.$pkgext ]; then
                 echo "downloading: $n-$v.$pkgext"
@@ -483,9 +478,16 @@ Upd() {
                 fi
             fi
 
+            echo "updating: $n ($v2 -> $v1)"
+
+            if [ -f "$sys/$n" ]; then . $sys/$n
+                if type upd_ >/dev/null 2>&1; then upd_; fi
+            fi
+
             rn=$lst/$n; cp $rn $rn.bak
 
             tar -C $root -xpf $arc/$n-$v.$pkgext
+            chmod 777 $root/pkg &>/dev/null
 
             list=$(comm -23 <(sort $rn.bak) <(sort $rn))
 

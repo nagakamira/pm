@@ -45,8 +45,21 @@ PkgLst() {
 }
 
 GetPkg() {
-    echo "downloading: $1"
-    curl -f -L -o $arc/$1 $getpkg/$1
+    for _pkg in ${plst[@]}; do
+        . $rcs/$_pkg/recipe
+        if [ ! -f $arc/$n-$v.$pkgext ]; then
+            echo "downloading: $n-$v.$pkgext"
+            curl -f -L -o $arc/$n-$v.$pkgext $getpkg/$n-$v.$pkgext
+            if [ ! -f $arc/$n-$v.$pkgext ]; then
+                echo "$n: archive file not found"
+                _pkg_+=($n)
+            fi
+        fi
+    done
+
+    if [ "${#_pkg_[@]}" -ge "1" ]; then
+        echo "missing archive(s): ${_pkg_[@]}"; exit 1
+    fi
 }
 
 RtDeps() {
@@ -98,20 +111,7 @@ Add() {
         echo "missing deps: ${mdeps[@]}"; exit 1
     fi
 
-    for dep in ${_deps[@]}; do
-        . $rcs/$dep/recipe;
-        if [ ! -f $arc/$n-$v.$pkgext ]; then
-            GetPkg $n-$v.$pkgext
-            if [ ! -f $arc/$n-$v.$pkgext ]; then
-                echo "$n-$v.$pkgext: file not found"
-                _pkg+=($n)
-            fi
-        fi
-    done
-
-    if [ "${#_pkg[@]}" -ge "1" ]; then
-        echo "missing archive(s): ${_pkg[@]}"; exit 1
-    fi
+    plst=(${_deps[@]}); GetPkg
 
     for dep in ${_deps[@]}; do
         . $rcs/$dep/recipe; export n v
@@ -130,26 +130,11 @@ Add() {
         if [ ! -d $root/$log ]; then mkdir -p $root/$log; fi
         echo "[$(date +%Y-%m-%d) $(date +%H:%M)] [ADD] $n ($v)" >> $root/$log/add
     done
-    deps=(); mdeps=(); _deps=(); _pkg=()
+    deps=(); mdeps=(); _deps=(); _pkg=(); plst=()
 }
 
 GrpAdd() {
-    GetRcs; PkgLst
-
-    for _pkg in ${plst[@]}; do
-        . $rcs/$_pkg/recipe
-        if [ ! -f $arc/$n-$v.$pkgext ]; then
-            GetPkg $n-$v.$pkgext
-            if [ ! -f $arc/$n-$v.$pkgext ]; then
-                echo "$n: archive file not found"
-                _pkg_+=($n)
-            fi
-        fi
-    done
-
-    if [ "${#_pkg_[@]}" -ge "1" ]; then
-        echo "missing archive(s): ${_pkg_[@]}"; exit 1
-    fi
+    GetRcs; PkgLst; GetPkg
 
     for _pkg in ${plst[@]}; do
         . $rcs/$_pkg/recipe
@@ -464,7 +449,9 @@ Own() {
 }
 
 Upd() {
-    GetRcs
+    if [ ! "$updrcs" = false ]; then
+        rm -rf $rcs; GetRcs
+    fi
 
     if [ -f $rcs/$pn/recipe ]; then
         . $rcs/$pn/recipe; v1=$v; v=
@@ -488,11 +475,17 @@ Upd() {
                 if type upd_ >/dev/null 2>&1; then upd_; fi
             fi
 
+            if [ ! -f $arc/$n-$v.$pkgext ]; then
+                echo "downloading: $n-$v.$pkgext"
+                curl -f -L -o $arc/$n-$v.$pkgext $getpkg/$n-$v.$pkgext
+                if [ ! -f $arc/$n-$v.$pkgext ]; then
+                    echo "$n: archive file not found"; exit 1
+                fi
+            fi
+
             rn=$lst/$n; cp $rn $rn.bak
 
-            if [ -f $arc/$n-$v.$pkgext ]; then
-                tar -C $root -xpf $arc/$n-$v.$pkgext
-            fi
+            tar -C $root -xpf $arc/$n-$v.$pkgext
 
             list=$(comm -23 <(sort $rn.bak) <(sort $rn))
 
@@ -529,7 +522,7 @@ GrpUpd() {
     plst=($(for i in ${plst[@]}; do echo $i; done | sort -u))
 
     for _pkg in ${plst[@]}; do
-        upd $_pkg
+        export updrcs=false; upd $_pkg
     done
 }
 

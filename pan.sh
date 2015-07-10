@@ -20,6 +20,7 @@ _Own=false
 _Upd=false
 _GrpUpd=false
 grpsys=false
+updrcs=true
 NoExtract=false
 NoStrip=false
 
@@ -81,26 +82,33 @@ RtDeps() {
 Add() {
     GetRcs
 
-    if [ -f $rcs/$pn/recipe ]; then
-        . $rcs/$pn/recipe
-    else
-        echo "$pn: recipe file not found"; exit 1
-    fi
+    for pn in $args; do
+        if [ "${pn%=*}" = "root" ]; then continue; fi
 
-    RtDeps $pn
+        if [ -f $rcs/$pn/recipe ]; then
+            . $rcs/$pn/recipe
+        else
+            echo "$pn: recipe file not found"; exit 1
+        fi
+        alst+=($pn)
+        RtDeps $pn
+    done
+
     deps=($(echo ${deps[@]} | tr ' ' '\n' | sort -u | tr '\n' ' '))
 
     for dep in ${deps[@]}; do
         if [ ! -f $rcs/$dep/recipe ]; then
             mdeps+=($dep); echo "$dep: recipe file not found"
         else
-            . $rcs/$dep/recipe; export n v
+            . $rcs/$dep/recipe
             if [ -f "$root/$inf/$n" ]; then
-                if [ "$n" = "$pn" ]; then
-                    _deps+=($n)
-                else
-                    continue
-                fi
+                for pn in ${alst[@]}; do
+                    if [ "$n" = "$pn" ]; then
+                        _deps+=($n)
+                    else
+                        continue
+                    fi
+                done
             else
                _deps+=($n)
             fi
@@ -130,11 +138,17 @@ Add() {
         if [ ! -d $root/$log ]; then mkdir -p $root/$log; fi
         echo "[$(date +%Y-%m-%d) $(date +%H:%M)] [ADD] $n ($v)" >> $root/$log/add
     done
-    deps=(); mdeps=(); _deps=(); _pkg=(); plst=()
 }
 
 GrpAdd() {
-    GetRcs; PkgLst; GetPkg
+    GetRcs
+
+    for gn in $args; do
+        if [ "${gn%=*}" = "root" ]; then continue; fi
+        PkgLst
+    done
+
+    GetPkg
 
     for _pkg in ${plst[@]}; do
         . $rcs/$_pkg/recipe
@@ -156,7 +170,6 @@ GrpAdd() {
             fi
         fi
     done
-    plst=()
 }
 
 download() {
@@ -200,78 +213,82 @@ Bld() {
 
     GetRcs
 
-    if [ -f $rcs/$pn/recipe ]; then
-        include
-    else
-        echo "$pn: recipe file not found"; exit 1
-    fi
-
-    if [ -z "$p" ]; then p=$n-$v; fi
-
-    for opt in "${o[@]}"; do
-        if [ "$opt" = "noextract" ]; then NoExtract=true; fi
-        if [ "$opt" = "nostrip" ]; then NoStrip=true; fi
-    done
-
-    _rcs=$rcs; rcs=$rcs/$n; _pkg=$pkg; pkg=$pkg/$n
-    mkdir -p $arc $pkg $src
-
-    if [ -n "$u" ]; then _url=$u
-        if [ "${#u[@]}" -gt "1" ]; then
-            for _u in "${u[@]}"; do
-                download $_u
-                extract
-            done
+    for pn in $args; do
+        if [ -f $rcs/$pn/recipe ]; then
+            include
         else
-            download $u
-            extract
+            echo "$pn: recipe file not found"; exit 1
         fi
-    else
-        p=./
-    fi
 
-    echo "building: $n ($v)"
-    if [ -d "$src/$p" ]; then cd $src/$p; else cd $src; fi
+        if [ -z "$p" ]; then p=$n-$v; fi
 
-    export CHOST CFLAGS CXXFLAGS LDFLAGS MAKEFLAGS arc pkg rcs src n v u p
-    export -f build; fakeroot -s $src/state build
-
-    if [ -f "$rcs/system" ]; then
-        mkdir -p $pkg/$sys; cp $rcs/system $pkg/$sys/$n
-    fi
-
-    cd $pkg; mkdir -p $pkg/{$inf,$lst}
-    echo "n=$n" >> $pkg/$inf/$n
-    echo "v=$v" >> $pkg/$inf/$n
-    echo "s=$s" >> $pkg/$inf/$n
-    printf "%s " "d=(${d[@]})" >> $pkg/$inf/$n
-    echo -e "" >> $pkg/$inf/$n
-    echo "u=$u" >> $pkg/$inf/$n
-    find -L ./ | sed 's/.\//\//' | sort > $pkg/$lst/$n
-
-    if [ "$NoStrip" = false ]; then
-        find . -type f 2>/dev/null | while read binary; do
-            case "$(file -bi "$binary")" in
-                *application/x-sharedlib*)
-                    fakeroot -i $src/state -s $src/state -- strip --strip-unneeded $binary;;
-                *application/x-archive*)
-                    fakeroot -i $src/state -s $src/state -- strip --strip-debug $binary;;
-                *application/x-executable*)
-                    fakeroot -i $src/state -s $src/state -- strip --strip-all $binary;;
-            esac
+        for opt in "${o[@]}"; do
+            if [ "$opt" = "noextract" ]; then NoExtract=true; fi
+            if [ "$opt" = "nostrip" ]; then NoStrip=true; fi
         done
-    fi
 
-    fakeroot -i $src/state -- tar -cpJf $arc/$n-$v.$pkgext ./
-    rm -rf $_pkg $src /tmp/$n.recipe
+        _rcs=$rcs; rcs=$rcs/$n; _pkg=$pkg; pkg=$pkg/$n
+        mkdir -p $arc $pkg $src
 
-    rcs=$_rcs; pkg=$_pkg; p=
+        if [ -n "$u" ]; then _url=$u
+            if [ "${#u[@]}" -gt "1" ]; then
+                for _u in "${u[@]}"; do
+                    download $_u
+                    extract
+                done
+            else
+                download $u
+                extract
+            fi
+        else
+            p=./
+        fi
+
+        echo "building: $n ($v)"
+        if [ -d "$src/$p" ]; then cd $src/$p; else cd $src; fi
+
+        export CHOST CFLAGS CXXFLAGS LDFLAGS MAKEFLAGS arc pkg rcs src n v u p
+        export -f build; fakeroot -s $src/state build
+
+        if [ -f "$rcs/system" ]; then
+            mkdir -p $pkg/$sys; cp $rcs/system $pkg/$sys/$n
+        fi
+
+        cd $pkg; mkdir -p $pkg/{$inf,$lst}
+        echo "n=$n" >> $pkg/$inf/$n
+        echo "v=$v" >> $pkg/$inf/$n
+        echo "s=$s" >> $pkg/$inf/$n
+        printf "%s " "d=(${d[@]})" >> $pkg/$inf/$n
+        echo -e "" >> $pkg/$inf/$n
+        echo "u=$u" >> $pkg/$inf/$n
+        find -L ./ | sed 's/.\//\//' | sort > $pkg/$lst/$n
+
+        if [ "$NoStrip" = false ]; then
+            find . -type f 2>/dev/null | while read binary; do
+                case "$(file -bi "$binary")" in
+                    *application/x-sharedlib*)
+                        fakeroot -i $src/state -s $src/state -- strip --strip-unneeded $binary;;
+                    *application/x-archive*)
+                        fakeroot -i $src/state -s $src/state -- strip --strip-debug $binary;;
+                    *application/x-executable*)
+                        fakeroot -i $src/state -s $src/state -- strip --strip-all $binary;;
+                esac
+            done
+        fi
+
+        fakeroot -i $src/state -- tar -cpJf $arc/$n-$v.$pkgext ./
+        rm -rf $_pkg $src /tmp/$n.recipe
+
+        rcs=$_rcs; pkg=$_pkg; p=
+    done
 }
 
 GrpBld() {
     set -e
 
-    GetRcs; PkgLst
+    GetRcs
+
+    for gn in $args; do PkgLst; done
 
     for _pkg in ${plst[@]}; do
         . $rcs/$_pkg/recipe
@@ -282,7 +299,6 @@ GrpBld() {
             fi
         fi
     done
-    plst=()
 }
 
 Con() {
@@ -300,64 +316,72 @@ Con() {
 }
 
 Del() {
-    ign="--ignore-fail-on-non-empty"
+    for pn in $args; do
+        if [ "${pn%=*}" = "root" ]; then continue; fi
 
-    if [ -f $root/$inf/$pn ]; then
-        . $root/$inf/$pn; export n v
-    else
-        echo "$pn: info file not found"; exit 1
-    fi
+        ign="--ignore-fail-on-non-empty"
 
-    if [ "$grpsys" = false ]; then
-        if [ -f "$root/$sys/$n" ]; then
-            . $root/$sys/$n
-            if type _del >/dev/null 2>&1; then export -f _del; fi
-            if type _add >/dev/null 2>&1; then export -f _add; fi
-            if [ "$root" != "/" ]; then chroot $root /bin/sh -c \
-                ". $sys/$n; if type del_ >/dev/null 2>&1; then del_; fi"
-            else
-                if type del_ >/dev/null 2>&1; then del_; fi
+        if [ -f $root/$inf/$pn ]; then
+            . $root/$inf/$pn; export n v
+        else
+            echo "$pn: info file not found"; exit 1
+        fi
+
+        if [ "$grpsys" = false ]; then
+            if [ -f "$root/$sys/$n" ]; then
+                . $root/$sys/$n
+                if type _del >/dev/null 2>&1; then export -f _del; fi
+                if type _add >/dev/null 2>&1; then export -f _add; fi
+                if [ "$root" != "/" ]; then chroot $root /bin/sh -c \
+                    ". $sys/$n; if type del_ >/dev/null 2>&1; then del_; fi"
+                else
+                    if type del_ >/dev/null 2>&1; then del_; fi
+                fi
             fi
         fi
-    fi
 
-    if [ -f "$root/$lst/$n" ]; then
-        echo "removing: $n ($v)"
-        list=$(tac $root/$lst/$n)
-    else
-        continue
-    fi
-
-    for l in $list; do
-        if [ -L $root/$l ]; then unlink $root/$l
-        elif [ -f $root/$l ]; then rm -f $root/$l
-        elif [ "$l" = "/" ]; then continue
-        elif [ -d $root/$l ]; then rmdir $ign $root/$l
-        fi
-    done
-
-    if [ "$grpsys" = false ]; then
-        if [ "$root" != "/" ]; then chroot $root /bin/sh -c \
-            "if type _del >/dev/null 2>&1; then _del; fi"
+        if [ -f "$root/$lst/$n" ]; then
+            echo "removing: $n ($v)"
+            list=$(tac $root/$lst/$n)
         else
-            if type _del >/dev/null 2>&1; then _del; fi
+            continue
         fi
-    fi
 
-    if [ ! -d $root/$log ]; then mkdir -p $root/$log; fi
-    echo "[$(date +%Y-%m-%d) $(date +%H:%M)] [DEL] $n ($v)" >> $root/$log/del
+        for l in $list; do
+            if [ -L $root/$l ]; then unlink $root/$l
+            elif [ -f $root/$l ]; then rm -f $root/$l
+            elif [ "$l" = "/" ]; then continue
+            elif [ -d $root/$l ]; then rmdir $ign $root/$l
+            fi
+        done
+
+        if [ "$grpsys" = false ]; then
+            if [ "$root" != "/" ]; then chroot $root /bin/sh -c \
+                "if type _del >/dev/null 2>&1; then _del; fi"
+            else
+                if type _del >/dev/null 2>&1; then _del; fi
+            fi
+        fi
+
+        if [ ! -d $root/$log ]; then mkdir -p $root/$log; fi
+        echo "[$(date +%Y-%m-%d) $(date +%H:%M)] [DEL] $n ($v)" >> $root/$log/del
+    done
 }
 
 GrpDel() {
-    for _pkg in $(ls $root/$inf); do
-        if [ -f $root/$inf/$_pkg ]; then
-            . $root/$inf/$_pkg
-        fi
- 
-        if [ "$s" = "$gn" ]; then plst+=($n); fi
-    done
+    for gn in $args; do
+        if [ "${gn%=*}" = "root" ]; then continue; fi
 
-    plst=($(for i in ${plst[@]}; do echo $i; done | sort -u))
+        for _pkg in $(ls $root/$inf); do
+            if [ -f $root/$inf/$_pkg ]; then
+                . $root/$inf/$_pkg
+            fi
+ 
+            if [ "$s" = "$gn" ]; then plst+=($n); fi
+        done
+
+        plst=($(for i in ${plst[@]}; do echo $i; done | sort -u))
+    done
 
     for _pkg in ${plst[@]}; do
         if [ -f "$root/$sys/$_pkg" ]; then
@@ -372,9 +396,7 @@ GrpDel() {
         fi
     done
 
-    for _pkg in ${plst[@]}; do
-        grpsys=true; pn=$_pkg; Del
-    done
+    grpsys=true; args=${plst[@]}; Del
 
     for _pkg in ${plst[@]}; do
         if [ -f "$root/$sys/$_pkg.sys" ]; then
@@ -387,7 +409,6 @@ GrpDel() {
             rm -f $root/$sys/$_pkg.sys $root/$inf/$_pkg.inf
         fi
     done
-    plst=()
 }
 
 Grp() {
@@ -449,66 +470,69 @@ Own() {
 }
 
 Upd() {
-    if [ ! "$updrcs" = false ]; then
+    if [ "$updrcs" = true ]; then
         rm -rf $rcs; GetRcs
     fi
 
-    if [ -f $rcs/$pn/recipe ]; then
-        . $rcs/$pn/recipe; v1=$v; v=
-    else
-        echo "$pn: recipe file not found"
-    fi
+    for pn in $args; do
 
-    if [ -f $inf/$n ]; then
-        . $inf/$n; v2=$v; v=
-    else
-        echo "$n: info file not found"; continue
-    fi
-
-    v=$(echo -e "$v1\n$v2" | sort -V | tail -n1)
-
-    if [ "$v1" != "$v2" ]; then
-        if [ "$v1" = "$v" ]; then
-
-            if [ ! -f $arc/$n-$v.$pkgext ]; then
-                echo "downloading: $n-$v.$pkgext"
-                curl -f -L -o $arc/$n-$v.$pkgext $getpkg/$n-$v.$pkgext
-                if [ ! -f $arc/$n-$v.$pkgext ]; then
-                    echo "$n: archive file not found"; exit 1
-                fi
-            fi
-
-            echo "updating: $n ($v2 -> $v1)"
-
-            if [ -f "$sys/$n" ]; then . $sys/$n
-                if type upd_ >/dev/null 2>&1; then upd_; fi
-            fi
-
-            rn=$lst/$n; cp $rn $rn.bak
-
-            tar -C $root -xpf $arc/$n-$v.$pkgext
-            chmod 777 $root/pkg &>/dev/null
-
-            list=$(comm -23 <(sort $rn.bak) <(sort $rn))
-
-            for l in $list; do
-                if [ -L $l ]; then unlink $l
-                elif [ -f $l ]; then rm -f $l
-                elif [ "$l" = "/" ]; then continue
-                elif [ -d $l ]; then rm -r $l
-                fi
-            done | tac
-
-            rm $rn.bak
-
-            if [ -f "$sys/$n" ]; then . $sys/$n
-                if type _upd >/dev/null 2>&1; then _upd; fi
-            fi
-
-            if [ ! -d $root/$log ]; then mkdir -p $root/$log; fi
-            echo "[$(date +%Y-%m-%d) $(date +%H:%M)] [UPD] $n ($v)" >> $log/upd
+        if [ -f $rcs/$pn/recipe ]; then
+            . $rcs/$pn/recipe; v1=$v; v=
+        else
+            echo "$pn: recipe file not found"
         fi
-    fi
+
+        if [ -f $inf/$n ]; then
+            . $inf/$n; v2=$v; v=
+        else
+            echo "$n: info file not found"; continue
+        fi
+
+        v=$(echo -e "$v1\n$v2" | sort -V | tail -n1)
+
+        if [ "$v1" != "$v2" ]; then
+            if [ "$v1" = "$v" ]; then
+                ulst+=($n)
+            fi
+        fi
+    done
+
+    plst=(${ulst[@]}); GetPkg
+
+    for _pkg in ${ulst[@]}; do
+        . $inf/$_pkg; _v=$v
+        . $rcs/$_pkg/recipe
+
+        echo "updating: $n ($_v -> $v)"
+
+        if [ -f "$sys/$n" ]; then . $sys/$n
+            if type upd_ >/dev/null 2>&1; then upd_; fi
+        fi
+
+        rn=$lst/$n; cp $rn $rn.bak
+
+        tar -C $root -xpf $arc/$n-$v.$pkgext
+        chmod 777 $root/pkg &>/dev/null
+
+        list=$(comm -23 <(sort $rn.bak) <(sort $rn))
+
+        for l in $list; do
+            if [ -L $l ]; then unlink $l
+            elif [ -f $l ]; then rm -f $l
+            elif [ "$l" = "/" ]; then continue
+            elif [ -d $l ]; then rm -r $l
+            fi
+        done | tac
+
+        rm $rn.bak
+
+        if [ -f "$sys/$n" ]; then . $sys/$n
+            if type _upd >/dev/null 2>&1; then _upd; fi
+        fi
+
+        if [ ! -d $root/$log ]; then mkdir -p $root/$log; fi
+        echo "[$(date +%Y-%m-%d) $(date +%H:%M)] [UPD] $n ($v)" >> $log/upd
+    done
 }
 
 GrpUpd() {
@@ -523,9 +547,7 @@ GrpUpd() {
 
     plst=($(for i in ${plst[@]}; do echo $i; done | sort -u))
 
-    for _pkg in ${plst[@]}; do
-        export updrcs=false; upd $_pkg
-    done
+    updrcs=false; args=${plst[@]}; Upd
 }
 
 if [ $# -eq 0 ]; then $0 -h; fi
@@ -569,58 +591,17 @@ for i in $@; do
     esac
 done
 
-if [ "$_Add" = true ]; then shift
-    for i in $@; do
-        if [ "${i%=*}" = "root" ]; then continue; fi
-        pn=$i; Add
-    done
-fi
-
-if [ "$_GrpAdd" = true ]; then shift
-    for i in $@; do
-        if [ "${i%=*}" = "root" ]; then continue; fi
-        gn=$i; GrpAdd
-    done
-fi
-
-if [ "$_Bld" = true ]; then shift
-    for i in $@; do
-        pn=$i; Bld
-    done
-fi
-
-if [ "$_GrpBld" = true ]; then shift
-    for i in $@; do
-        gn=$i; GrpBld
-    done
-fi
-
+if [ "$_Add" = true ]; then shift; args=$@; Add; fi
+if [ "$_GrpAdd" = true ]; then shift; args=$@; GrpAdd; fi
+if [ "$_Bld" = true ]; then shift; args=$@; Bld; fi
+if [ "$_GrpBld" = true ]; then shift; args=$@; GrpBld; fi
 if [ "$_Con" = true ]; then shift; Con; fi
-
-if [ "$_Del" = true ]; then shift
-    for i in $@; do
-        if [ "${i%=*}" = "root" ]; then continue; fi
-        pn=$i; Del
-    done
-fi
-
-if [ "$_GrpDel" = true ]; then shift
-    for i in $@; do
-        if [ "${i%=*}" = "root" ]; then continue; fi
-        gn=$i; GrpDel
-    done
-fi
-
+if [ "$_Del" = true ]; then shift; args=$@; Del; fi
+if [ "$_GrpDel" = true ]; then shift; args=$@; GrpDel; fi
 if [ "$_Grp" = true ]; then shift; gn=$1; Grp; fi
 if [ "$_GrpLst" = true ]; then shift; GrpLst; fi
 if [ "$_Inf" = true ]; then shift; pn=$1; Inf; fi
 if [ "$_Lst" = true ]; then shift; pn=$1; Lst; fi
 if [ "$_Own" = true ]; then shift; pt=$1; Own; fi
-
-if [ "$_Upd" = true ]; then shift
-    for i in $@; do
-        pn=$i; Upd
-    done
-fi
-
+if [ "$_Upd" = true ]; then shift; args=$@; Upd; fi
 if [ "$_GrpUpd" = true ]; then shift; GrpUpd; fi

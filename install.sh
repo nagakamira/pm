@@ -15,9 +15,6 @@ if [ ! -d $root/pkg/arc ]; then
 fi
 chmod 777 $root/pkg/{,arc}
 
-for _bin in add bld del pan upd; do
-	install -v -Dm755 ${_bin}.sh $root/usr/bin/${_bin}
-done
-
+install -v -Dm755 pan.sh $root/usr/bin/pan
 install -v -Dm644 pan.conf $root/etc/pan.conf
 install -v -Dm644 sample/recipe $root/usr/share/pan/recipe

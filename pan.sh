@@ -39,7 +39,7 @@ PkgLst() {
         fi
         if [ -z "$s" ]; then continue; fi
         if [ "$s" = "$gn" ]; then plst+=($n); fi
-        unset s
+        unset n v s d u p o
     done
 
     plst=($(for i in ${plst[@]}; do echo $i; done | sort -u))
@@ -122,11 +122,17 @@ Add() {
     plst=(${_deps[@]}); GetPkg
 
     for dep in ${_deps[@]}; do
-        . $rcs/$dep/recipe; export n v
+        . $rcs/$dep/recipe
         echo "installing: $n ($v)"
         tar -C $root -xpf $arc/$n-$v.$pkgext
         chmod 777 $root/pkg &>/dev/null
 
+        if [ ! -d $root/$log ]; then mkdir -p $root/$log; fi
+        echo "[$(date +%Y-%m-%d) $(date +%H:%M)] [ADD] $n ($v)" >> $root/$log/add
+    done
+
+    for dep in ${_deps[@]}; do
+        . $rcs/$dep/recipe; export n v
         if [ -f "$root/$sys/$n" ]; then . $root/$sys/$n
             if [ "$root" != "/" ]; then chroot $root /bin/sh -c \
                 ". $sys/$n; if type _add >/dev/null 2>&1; then _add; fi"
@@ -134,9 +140,6 @@ Add() {
                 if type _add >/dev/null 2>&1; then _add; fi
             fi
         fi
-
-        if [ ! -d $root/$log ]; then mkdir -p $root/$log; fi
-        echo "[$(date +%Y-%m-%d) $(date +%H:%M)] [ADD] $n ($v)" >> $root/$log/add
     done
 }
 
@@ -148,28 +151,7 @@ GrpAdd() {
         PkgLst
     done
 
-    GetPkg
-
-    for _pkg in ${plst[@]}; do
-        . $rcs/$_pkg/recipe
-        echo "installing: $n ($v)"
-        tar -C $root -xpf $arc/$n-$v.$pkgext
-        chmod 777 $root/pkg &>/dev/null
-
-        if [ ! -d $root/$log ]; then mkdir -p $root/$log; fi
-        echo "[$(date +%Y-%m-%d) $(date +%H:%M)] [ADD] $n ($v)" >> $root/$log/add
-    done
-
-    for _pkg in ${plst[@]}; do
-        . $rcs/$_pkg/recipe; export n v
-        if [ -f "$root/$sys/$n" ]; then . $root/$sys/$n
-            if [ "$root" != "/" ]; then chroot $root /bin/sh -c \
-                ". $sys/$n; if type _add >/dev/null 2>&1; then _add; fi"
-            else
-                if type _add >/dev/null 2>&1; then _add; fi
-            fi
-        fi
-    done
+    GetPkg; args=${plst[@]}; Add
 }
 
 download() {
@@ -290,12 +272,11 @@ GrpBld() {
 
     for gn in $args; do PkgLst; done
 
-    for _pkg in ${plst[@]}; do
-        . $rcs/$_pkg/recipe
-        if [ ! -f /tmp/$_pkg.$gn ]; then
-            bld $_pkg
+    for _pkg_ in ${plst[@]}; do
+        if [ ! -f /tmp/$_pkg_ ]; then
+        	args=($_pkg_); Bld
             if [ $? -eq 0 ]; then
-                touch /tmp/$_pkg.$gn
+                touch /tmp/$_pkg_
             fi
         fi
     done

@@ -104,14 +104,14 @@ Add() {
         else
             . $rcs/$dep/recipe
             if [ -f "$root/$inf/$n" ]; then
-            	for pn in ${alst[@]}; do
-            		if [ "$n" = "$pn" ] && [ "$reinst" = true ]; then
-            			_deps+=($n)
-            		else
-		                continue
+                for pn in ${alst[@]}; do
+                    if [ "$n" = "$pn" ] && [ "$reinst" = true ]; then
+                        _deps+=($n)
+                    else
+                        continue
 		            fi
-		        done
-		        continue
+                done
+                continue
             else
                _deps+=($n)
             fi

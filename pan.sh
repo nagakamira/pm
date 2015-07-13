@@ -21,6 +21,7 @@ _Upd=false
 _GrpUpd=false
 grpsys=false
 updrcs=true
+reinst=false
 NoExtract=false
 NoStrip=false
 
@@ -84,12 +85,14 @@ Add() {
 
     for pn in $args; do
         if [ "${pn%=*}" = "root" ]; then continue; fi
+        if [ "${pn}" = "reinstall" ]; then continue; fi
 
         if [ -f $rcs/$pn/recipe ]; then
             . $rcs/$pn/recipe
         else
             echo "$pn: recipe file not found"; exit 1
         fi
+        alst+=($pn)
         RtDeps $pn
     done
 
@@ -101,7 +104,14 @@ Add() {
         else
             . $rcs/$dep/recipe
             if [ -f "$root/$inf/$n" ]; then
-                continue
+            	for pn in ${alst[@]}; do
+            		if [ "$n" = "$pn" ] && [ "$reinst" = true ]; then
+            			_deps+=($n)
+            		else
+		                continue
+		            fi
+		        done
+		        continue
             else
                _deps+=($n)
             fi
@@ -141,6 +151,7 @@ GrpAdd() {
 
     for gn in $args; do
         if [ "${gn%=*}" = "root" ]; then continue; fi
+        if [ "${gn}" = "reinstall" ]; then continue; fi
         PkgLst
     done
 
@@ -545,7 +556,11 @@ for i in $@; do
             echo "  -o, --owner <path>              show the file ownership"
             echo "  -u, --update <name>             update a package"
             echo "  -U, --grp-update <name>         update group of packages"
+            echo "options:"
+            echo "  reinstall                       force add a package"
+            echo "  root=<directory>                change root directory"
             exit 1;;
+        reinstall) reinst=true;;
         root=*)
             root=${i#*=};;
         -a|--add) _Add=true;;

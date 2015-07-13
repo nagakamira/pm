@@ -90,7 +90,6 @@ Add() {
         else
             echo "$pn: recipe file not found"; exit 1
         fi
-        alst+=($pn)
         RtDeps $pn
     done
 
@@ -102,13 +101,7 @@ Add() {
         else
             . $rcs/$dep/recipe
             if [ -f "$root/$inf/$n" ]; then
-                for pn in ${alst[@]}; do
-                    if [ "$n" = "$pn" ]; then
-                        _deps+=($n)
-                    else
-                        continue
-                    fi
-                done
+                continue
             else
                _deps+=($n)
             fi

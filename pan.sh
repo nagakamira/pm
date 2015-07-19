@@ -71,7 +71,7 @@ RtDeps() {
 
     deps=(${deps[@]} $1)
     for dep in ${d[@]}; do
-        if [[ ${deps[*]} =~ $dep ]]; then
+        if [[ ${deps[*]} =~ " $dep " ]]; then
             continue
         else
             deps=(${deps[@]} $dep)

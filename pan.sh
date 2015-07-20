@@ -160,7 +160,9 @@ GrpAdd() {
 
 download() {
     if [ "${1%://*}" = "git" ]; then
-        git clone $1 $src/$n-$v
+        if [ ! -d $src/$n-$v ]; then
+            git clone $1 $src/$n-$v
+        fi
     else
         if [[ $1 =~ "::" ]]; then
             file=${1%::*}; url=${1#*::}
@@ -175,7 +177,7 @@ download() {
 }
 
 extract() {
-    if [ ! "${_url%://*}" = "git" ]; then
+    if [ ! "${1%://*}" = "git" ]; then
         if [ "$NoExtract" = false ]; then
             echo "extracting: $file"
             case $file in
@@ -226,11 +228,11 @@ Bld() {
             if [ "${#u[@]}" -gt "1" ]; then
                 for _u in "${u[@]}"; do
                     download $_u
-                    extract
+                    extract $_u
                 done
             else
                 download $u
-                extract
+                extract $u
             fi
         else
             p=./

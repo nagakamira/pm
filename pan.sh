@@ -563,7 +563,7 @@ for i in $@; do
             echo "  -l, --list <name>               show package filelist"
             echo "  -o, --owner <path>              show the file ownership"
             echo "  -u, --update <name>             update a package"
-            echo "  -U, --grp-update <name>         update group of packages"
+            echo "  -U, --update-all                update all the packages"
             echo "options:"
             echo "  reinstall                       force add a package"
             echo "  root=<directory>                change root directory"
@@ -584,7 +584,7 @@ for i in $@; do
         -l|--list) _Lst=true;;
         -o|--owner) _Own=true;;
         -u|--update) _Upd=true;;
-        -U|--grp-update) _GrpUpd=true;;
+        -U|--update-all) _GrpUpd=true;;
     esac
 done
 

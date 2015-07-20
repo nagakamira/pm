@@ -159,11 +159,17 @@ GrpAdd() {
 }
 
 download() {
-    if [ ! "${_url%://*}" = "git" ]; then
-        file=$(basename $1)
+    if [ "${1%://*}" = "git" ]; then
+        git clone $1 $src/$n-$v
+    else
+        if [[ $1 =~ "::" ]]; then
+            file=${1%::*}; url=${1#*::}
+        else
+            file=$(basename $1); url=$1
+        fi
         if [ ! -f $arc/$file ]; then
             echo "downloading: $file"
-            curl -L -o $arc/$file $1
+            curl -L -o $arc/$file $url
         fi
     fi
 }
@@ -216,7 +222,7 @@ Bld() {
         _rcs=$rcs; rcs=$rcs/$n; _pkg=$pkg; pkg=$pkg/$n
         mkdir -p $arc $pkg $src
 
-        if [ -n "$u" ]; then _url=$u
+        if [ -n "$u" ]; then
             if [ "${#u[@]}" -gt "1" ]; then
                 for _u in "${u[@]}"; do
                     download $_u

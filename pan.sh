@@ -25,11 +25,13 @@ reinst=false
 NoExtract=false
 NoStrip=false
 
+SetPrm() {
+    chgrp -R users $rcs
+    chmod -R g+w $rcs
+}
 GetRcs() {
     if [ ! -d $rcs ]; then
-    	git clone $gitrcs $rcs
-		chgrp -R users $rcs
-		chmod -R g+w $rcs
+    	git clone $gitrcs $rcs; SetPrm
 	fi
 }
 
@@ -464,7 +466,11 @@ Own() {
 
 Upd() {
     if [ "$updrcs" = true ]; then
-        rm -rf $rcs; GetRcs
+        if [ -d $rcs ]; then
+            cd $rcs; git pull origin master; SetPrm
+        else
+            GetRcs
+        fi
     fi
 
     for pn in $args; do
@@ -478,7 +484,7 @@ Upd() {
         if [ -f $inf/$n ]; then
             . $inf/$n; v2=$v; v=
         else
-            echo "$n: info file not found"; continue
+            continue
         fi
 
         v=$(echo -e "$v1\n$v2" | sort -V | tail -n1)
@@ -529,7 +535,11 @@ Upd() {
 }
 
 GrpUpd() {
-    rm -rf $rcs; GetRcs
+    if [ -d $rcs ]; then
+        cd $rcs; git pull origin master; SetPrm
+    else
+        GetRcs
+    fi
 
     for _pkg in $(ls $rcs); do
         if [ -f $rcs/$_pkg/recipe ]; then

@@ -256,7 +256,8 @@ Bld() {
         echo "s=$s" >> $pkg/$inf/$n
         printf "%s " "d=(${d[@]})" >> $pkg/$inf/$n
         echo -e "" >> $pkg/$inf/$n
-        echo "u=$u" >> $pkg/$inf/$n
+        printf "%s " "u=(${u[@]})" >> $pkg/$inf/$n
+        echo -e "" >> $pkg/$inf/$n
         find -L ./ | sed 's/.\//\//' | sort > $pkg/$lst/$n
 
         if [ "$NoStrip" = false ]; then
@@ -436,7 +437,15 @@ Inf() {
         echo "section: $s"
         echo "depends: ${d[@]}"
         if [ -n "$u" ]; then
-            echo "address: $u"
+            if [ "${#u[@]}" -gt "1" ]; then
+                for _u in ${u[@]}; do
+                    if [[ $_u =~ "::" ]]; then _u=${_u#*::}; fi
+                    echo "archive: $_u"
+                done
+            else
+                if [[ $u =~ "::" ]]; then u=${u#*::}; fi
+                echo "archive: $u"
+            fi
         fi
     else
         if [ -n "$pn" ]; then

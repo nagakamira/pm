@@ -198,10 +198,31 @@ extract() {
     fi
 }
 
-include() {
-    cp $rcs/$pn/recipe /tmp/$pn.recipe
-    sed -i -e "s#build() {#build() {\n    set -e#" /tmp/$pn.recipe
-    . /tmp/$pn.recipe
+_package() {
+    cd $pkg; mkdir -p $pkg/{$inf,$lst}
+    echo "n=$n" >> $pkg/$inf/$n
+    echo "v=$v" >> $pkg/$inf/$n
+    echo "s=$s" >> $pkg/$inf/$n
+    printf "%s " "d=(${d[@]})" >> $pkg/$inf/$n
+    echo -e "" >> $pkg/$inf/$n
+    printf "%s " "u=(${u[@]})" >> $pkg/$inf/$n
+    echo -e "" >> $pkg/$inf/$n
+    find -L ./ | sed 's/.\//\//' | sort > $pkg/$lst/$n
+
+    if [ "$NoStrip" = false ]; then
+        find . -type f 2>/dev/null | while read binary; do
+            case "$(file -bi "$binary")" in
+                *application/x-sharedlib*)
+                    fakeroot -i $src/state.$n -s $src/state.$n -- strip --strip-unneeded $binary;;
+                *application/x-archive*)
+                    fakeroot -i $src/state.$n -s $src/state.$n -- strip --strip-debug $binary;;
+                *application/x-executable*)
+                    fakeroot -i $src/state.$n -s $src/state.$n -- strip --strip-all $binary;;
+            esac
+        done
+    fi
+
+    fakeroot -i $src/state.$n -- tar -cpJf $arc/$n-$v.$pkgext ./
 }
 
 Bld() {
@@ -210,8 +231,11 @@ Bld() {
     GetRcs
 
     for pn in $args; do
+        _rcs=$rcs; _pkg=$pkg
+        mkdir -p $arc $src
+
         if [ -f $rcs/$pn/recipe ]; then
-            include
+            . $rcs/$pn/recipe
         else
             echo "$pn: recipe file not found"; exit 1
         fi
@@ -222,9 +246,6 @@ Bld() {
             if [ "$opt" = "noextract" ]; then NoExtract=true; fi
             if [ "$opt" = "nostrip" ]; then NoStrip=true; fi
         done
-
-        _rcs=$rcs; rcs=$rcs/$n; _pkg=$pkg; pkg=$pkg/$n
-        mkdir -p $arc $pkg $src
 
         if [ -n "$u" ]; then
             if [ "${#u[@]}" -gt "1" ]; then
@@ -243,39 +264,51 @@ Bld() {
         echo "building: $n ($v)"
         if [ -d "$src/$p" ]; then cd $src/$p; else cd $src; fi
 
-        export CHOST CFLAGS CXXFLAGS LDFLAGS MAKEFLAGS arc pkg rcs src n v u p
-        export -f build; fakeroot -s $src/state build
+        cp $rcs/$n/recipe /tmp/$n.recipe
+        sed -i -e "s#build() {#build() {\n    set -e#" /tmp/$n.recipe
 
-        if [ -f "$rcs/system" ]; then
-            mkdir -p $pkg/$sys; cp $rcs/system $pkg/$sys/$n
-        fi
-
-        cd $pkg; mkdir -p $pkg/{$inf,$lst}
-        echo "n=$n" >> $pkg/$inf/$n
-        echo "v=$v" >> $pkg/$inf/$n
-        echo "s=$s" >> $pkg/$inf/$n
-        printf "%s " "d=(${d[@]})" >> $pkg/$inf/$n
-        echo -e "" >> $pkg/$inf/$n
-        printf "%s " "u=(${u[@]})" >> $pkg/$inf/$n
-        echo -e "" >> $pkg/$inf/$n
-        find -L ./ | sed 's/.\//\//' | sort > $pkg/$lst/$n
-
-        if [ "$NoStrip" = false ]; then
-            find . -type f 2>/dev/null | while read binary; do
-                case "$(file -bi "$binary")" in
-                    *application/x-sharedlib*)
-                        fakeroot -i $src/state -s $src/state -- strip --strip-unneeded $binary;;
-                    *application/x-archive*)
-                        fakeroot -i $src/state -s $src/state -- strip --strip-debug $binary;;
-                    *application/x-executable*)
-                        fakeroot -i $src/state -s $src/state -- strip --strip-all $binary;;
-                esac
+        if [ ${#n[@]} -ge 2 ]; then
+            for i in ${!n[@]}; do
+                sed -i -e "s#package_${n[$i]}() {#package_${n[$i]}() {\n    set -e#" /tmp/$n.recipe
             done
+        else
+            sed -i -e "s#package() {#package() {\n    set -e#" /tmp/$n.recipe
         fi
 
-        fakeroot -i $src/state -- tar -cpJf $arc/$n-$v.$pkgext ./
-        rm -rf $_pkg $src /tmp/$n.recipe
+        . /tmp/$n.recipe; rcs=$rcs/$n; _pwd=`pwd`
 
+        if type build >/dev/null 2>&1; then build; fi
+
+        if [ ${#n[@]} -ge 2 ]; then
+            for i in ${!n[@]}; do
+                n=${n[$i]}; s=${s[$i]}
+                pkg=$pkg/$n; mkdir -p $pkg
+                export arc pkg rcs src n v u p
+
+                d=($(declare -f package_$n | sed -n 's/d=\(.*\);/\1/p' | tr -d "()" | tr -d "'"))
+
+                export -f package_$n; fakeroot -s $src/state.$n package_$n
+
+                if [ -f "$rcs/system.$n" ]; then
+                    mkdir -p $pkg/$sys; cp $rcs/system.$n $pkg/$sys/$n
+                fi
+
+                _package; pkg=$_pkg; cd $_pwd
+            done
+        else
+            pkg=$pkg/$n; mkdir -p $pkg
+            export arc pkg rcs src n v u p
+
+            export -f package; fakeroot -s $src/state.$n package
+
+            if [ -f "$rcs/system" ]; then
+                mkdir -p $pkg/$sys; cp $rcs/system $pkg/$sys/$n
+            fi
+
+            _package
+        fi
+
+        rm -rf $_pkg $src /tmp/$n.recipe
         rcs=$_rcs; pkg=$_pkg; p=
     done
 }

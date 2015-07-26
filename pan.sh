@@ -285,6 +285,7 @@ Bld() {
                 pkg=$pkg/$n; mkdir -p $pkg
                 export arc pkg rcs src n v u p
 
+                s=$(echo $(declare -f package_$n | sed -n 's/s=\(.*\);/\1/p'))
                 d=($(declare -f package_$n | sed -n 's/d=\(.*\);/\1/p' | tr -d "()" | tr -d "'"))
 
                 export -f package_$n; fakeroot -s $src/state.$n package_$n

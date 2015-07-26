@@ -277,14 +277,14 @@ Bld() {
 
         . /tmp/$n.recipe; rcs=$rcs/$n; _pwd=`pwd`
 
+        export CHOST CFLAGS CXXFLAGS LDFLAGS MAKEFLAGS arc pkg rcs src n v u p
+
         if type build >/dev/null 2>&1; then build; fi
 
         if [ ${#n[@]} -ge 2 ]; then
             for i in ${!n[@]}; do
                 n=${n[$i]}; s=${s[$i]}
                 pkg=$pkg/$n; mkdir -p $pkg
-                export arc pkg rcs src n v u p
-
                 s=$(echo $(declare -f package_$n | sed -n 's/s=\(.*\);/\1/p'))
                 d=($(declare -f package_$n | sed -n 's/d=\(.*\);/\1/p' | tr -d "()" | tr -d "'"))
 
@@ -298,7 +298,6 @@ Bld() {
             done
         else
             pkg=$pkg/$n; mkdir -p $pkg
-            export arc pkg rcs src n v u p
 
             export -f package; fakeroot -s $src/state.$n package
 

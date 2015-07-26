@@ -40,8 +40,21 @@ PkgLst() {
         if [ -f $rcs/$_pkg/recipe ]; then
             . $rcs/$_pkg/recipe
         fi
-        if [ -z "$s" ]; then continue; fi
-        if [ "$s" = "$gn" ]; then plst+=($n); fi
+
+        if  [[ -L "$rcs/$_pkg" && -d "$rcs/$_pkg" ]]; then
+            unset n v s d u p o; continue
+        fi
+
+        if [ ${#n[@]} -ge 2 ]; then
+            for i in ${!n[@]}; do
+                s=$(echo $(declare -f package_${n[$i]} | sed -n 's/s=\(.*\);/\1/p'))
+                if [ -z "$s" ]; then continue; fi
+                if [ "$s" = "$gn" ]; then plst+=(${n[$i]}); fi
+            done
+        else
+            if [ -z "$s" ]; then unset n v s d u p o; continue; fi
+            if [ "$s" = "$gn" ]; then plst+=($n); fi
+        fi
         unset n v s d u p o
     done
 
@@ -51,6 +64,7 @@ PkgLst() {
 GetPkg() {
     for _pkg in ${plst[@]}; do
         . $rcs/$_pkg/recipe
+        if  [[ -L "$rcs/$_pkg" && -d "$rcs/$_pkg" ]]; then n=$_pkg; fi
         if [ ! -f $arc/$n-$v.$pkgext ]; then
             echo "downloading: $n-$v.$pkgext"
             curl -f -L -o $arc/$n-$v.$pkgext $getpkg/$n-$v.$pkgext
@@ -69,6 +83,15 @@ GetPkg() {
 RtDeps() {
     if [ -f $rcs/$1/recipe ]; then
         . $rcs/$1/recipe
+    fi
+
+    if [ ${#n[@]} -ge 2 ]; then
+        for i in ${!n[@]}; do
+            if [ "${n[$i]}" = "$1" ]; then
+                d=($(declare -f package_${n[$i]} | sed -n 's/d=\(.*\);/\1/p' | tr -d "()" | tr -d "'"))
+            fi
+        done
+        unset n
     fi
 
     deps=(${deps[@]} $1)
@@ -100,22 +123,23 @@ Add() {
 
     deps=($(echo ${deps[@]} | tr ' ' '\n' | sort -u | tr '\n' ' '))
 
+    echo ${deps[@]}
+
     for dep in ${deps[@]}; do
         if [ ! -f $rcs/$dep/recipe ]; then
             mdeps+=($dep); echo "$dep: recipe file not found"
         else
-            . $rcs/$dep/recipe
-            if [ -f "$root/$inf/$n" ]; then
+            if [ -f "$root/$inf/$dep" ]; then
                 for pn in ${alst[@]}; do
-                    if [ "$n" = "$pn" ] && [ "$reinst" = true ]; then
-                        _deps+=($n)
+                    if [ "$dep" = "$pn" ] && [ "$reinst" = true ]; then
+                        _deps+=($dep)
                     else
                         continue
                     fi
                 done
                 continue
             else
-               _deps+=($n)
+               _deps+=($dep)
             fi
         fi
     done
@@ -128,6 +152,7 @@ Add() {
 
     for dep in ${_deps[@]}; do
         . $rcs/$dep/recipe
+        if  [[ -L "$rcs/$dep" && -d "$rcs/$dep" ]]; then n=$dep; fi
         echo "installing: $n ($v)"
         tar -C $root -xpf $arc/$n-$v.$pkgext
         chmod 777 $root/pkg &>/dev/null
@@ -137,7 +162,9 @@ Add() {
     done
 
     for dep in ${_deps[@]}; do
-        . $rcs/$dep/recipe; export n v
+        . $rcs/$dep/recipe
+        if  [[ -L "$rcs/$dep" && -d "$rcs/$dep" ]]; then n=$dep; fi
+        export n v
         if [ -f "$root/$sys/$n" ]; then . $root/$sys/$n
             if [ "$root" != "/" ]; then chroot $root /bin/sh -c \
                 ". $sys/$n; if type _add >/dev/null 2>&1; then _add; fi"
@@ -231,6 +258,8 @@ Bld() {
     GetRcs
 
     for pn in $args; do
+        if  [[ -L "$rcs/$pn" && -d "$rcs/$pn" ]]; then continue; fi
+
         _rcs=$rcs; _pkg=$pkg
         mkdir -p $arc $src
 
@@ -283,7 +312,7 @@ Bld() {
 
         if [ ${#n[@]} -ge 2 ]; then
             for i in ${!n[@]}; do
-                n=${n[$i]}; s=${s[$i]}
+                n=${n[$i]}
                 pkg=$pkg/$n; mkdir -p $pkg
                 s=$(echo $(declare -f package_$n | sed -n 's/s=\(.*\);/\1/p'))
                 d=($(declare -f package_$n | sed -n 's/d=\(.*\);/\1/p' | tr -d "()" | tr -d "'"))
@@ -453,8 +482,20 @@ GrpLst() {
         if [ -f $rcs/$_pkg/recipe ]; then
             . $rcs/$_pkg/recipe
         fi
- 
-       glst+=($s)
+
+        if  [[ -L "$rcs/$_pkg" && -d "$rcs/$_pkg" ]]; then
+            unset n s; continue
+        fi
+
+        if [ ${#n[@]} -ge 2 ]; then
+            for i in ${!n[@]}; do
+                s=$(echo $(declare -f package_${n[$i]} | sed -n 's/s=\(.*\);/\1/p'))
+                glst+=($s)
+            done
+        else
+            glst+=($s)
+        fi
+        unset n s
     done
 
     glst=($(echo ${glst[@]} | tr ' ' '\n' | sort -u | tr '\n' ' '))
@@ -516,11 +557,18 @@ Upd() {
     fi
 
     for pn in $args; do
-
-        if [ -f $rcs/$pn/recipe ]; then
-            . $rcs/$pn/recipe; v1=$v; v=
+        if  [[ -L "$rcs/$pn" && -d "$rcs/$pn" ]]; then
+            if [ -f $rcs/$pn/recipe ]; then
+                . $rcs/$pn/recipe; n=$pn; v1=$v; v=
+            else
+                echo "$pn: recipe file not found"
+            fi
         else
-            echo "$pn: recipe file not found"
+            if [ -f $rcs/$pn/recipe ]; then
+                . $rcs/$pn/recipe; v1=$v; v=
+            else
+                echo "$pn: recipe file not found"
+            fi
         fi
 
         if [ -f $inf/$n ]; then
@@ -543,6 +591,7 @@ Upd() {
     for _pkg in ${ulst[@]}; do
         . $inf/$_pkg; _v=$v
         . $rcs/$_pkg/recipe
+        if  [[ -L "$rcs/$_pkg" && -d "$rcs/$_pkg" ]]; then n=$_pkg; fi
 
         echo "updating: $n ($_v -> $v)"
 
@@ -587,7 +636,13 @@ GrpUpd() {
         if [ -f $rcs/$_pkg/recipe ]; then
            . $rcs/$_pkg/recipe
         fi
-        plst+=($n)
+        if [ ${#n[@]} -ge 2 ]; then
+            for i in ${!n[@]}; do
+                plst+=(${n[$i]})
+            done
+        else
+            plst+=($n)
+        fi
     done
 
     plst=($(for i in ${plst[@]}; do echo $i; done | sort -u))

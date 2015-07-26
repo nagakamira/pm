@@ -123,8 +123,6 @@ Add() {
 
     deps=($(echo ${deps[@]} | tr ' ' '\n' | sort -u | tr '\n' ' '))
 
-    echo ${deps[@]}
-
     for dep in ${deps[@]}; do
         if [ ! -f $rcs/$dep/recipe ]; then
             mdeps+=($dep); echo "$dep: recipe file not found"

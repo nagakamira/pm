@@ -7,6 +7,9 @@ u=ftp://ftp.gnu.org/gnu/$n/$n-$v.tar.xz
 build() {
     ./configure --prefix=/usr
     make
+}
+
+package() {
     make DESTDIR=$pkg install
 
     rm -f $pkg/usr/share/info/dir

@@ -224,6 +224,8 @@ builddep() {
     fi
 
     if [ "${#deps[@]}" -ge "1" ]; then
+        deps=($(echo ${deps[@]} | tr ' ' '\n' | sort -u | tr '\n' ' '))
+
         echo "runtime/build dependency: ${deps[@]}"
         echo "install the package(s) and try building $n again"
         exit 1

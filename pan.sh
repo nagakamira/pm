@@ -258,14 +258,22 @@ Bld() {
     for pn in $args; do
         if  [[ -L "$rcs/$pn" && -d "$rcs/$pn" ]]; then continue; fi
 
-        _rcs=$rcs; _pkg=$pkg
-        mkdir -p $arc $src
-
         if [ -f $rcs/$pn/recipe ]; then
             . $rcs/$pn/recipe
         else
             echo "$pn: recipe file not found"; exit 1
         fi
+
+        if [ -n "$m" ]; then
+            for dep in ${m[@]}; do
+                if [ ! -f $inf/$dep ]; then
+                    mlst+=($dep)
+                fi
+            done
+            pan -a ${mlst[@]}
+        fi
+
+        _rcs=$rcs; _pkg=$pkg; mkdir -p $arc $src
 
         if [ -z "$p" ]; then p=$n-$v; fi
 

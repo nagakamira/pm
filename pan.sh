@@ -22,6 +22,7 @@ _GrpUpd=false
 grpsys=false
 updrcs=true
 reinst=false
+skipdep=false
 NoExtract=false
 NoStrip=false
 
@@ -111,6 +112,7 @@ Add() {
     for pn in $args; do
         if [ "${pn%=*}" = "root" ]; then continue; fi
         if [ "${pn}" = "reinstall" ]; then continue; fi
+        if [ "${pn}" = "skipdep" ]; then continue; fi
 
         if [ -f $rcs/$pn/recipe ]; then
             . $rcs/$pn/recipe
@@ -118,7 +120,7 @@ Add() {
             echo "$pn: recipe file not found"; exit 1
         fi
         alst+=($pn)
-        RtDeps $pn
+        if [ "$skipdep" = true ]; then deps+=($pn); else RtDeps $pn; fi
     done
 
     deps=($(echo ${deps[@]} | tr ' ' '\n' | sort -u | tr '\n' ' '))
@@ -179,10 +181,53 @@ GrpAdd() {
     for gn in $args; do
         if [ "${gn%=*}" = "root" ]; then continue; fi
         if [ "${gn}" = "reinstall" ]; then continue; fi
+        if [ "${pn}" = "skipdep" ]; then continue; fi
         PkgLst
     done
 
     GetPkg; args=${plst[@]}; Add
+}
+
+builddep() {
+    if [ ${#n[@]} -ge 2 ]; then
+        for i in ${!n[@]}; do
+            _d=($(declare -f package_${n[$i]} | sed -n 's/d=\(.*\);/\1/p' | tr -d "()" | tr -d "'"))
+            for dep in ${_d[@]}; do
+                if [ ! -f $inf/$dep ]; then
+                    dlst+=($dep)
+                fi
+            done
+        done
+        if [ "${#dlst[@]}" -ge "1" ]; then
+            deps+=(${dlst[@]}); dlst=
+        fi
+    elif [ -n "$d" ]; then
+        for dep in ${d[@]}; do
+            if [ ! -f $inf/$dep ]; then
+                dlst+=($dep)
+            fi
+        done
+        if [ "${#dlst[@]}" -ge "1" ]; then
+            deps+=(${dlst[@]}); dlst=
+        fi
+    fi
+
+    if [ -n "$m" ]; then
+        for dep in ${m[@]}; do
+            if [ ! -f $inf/$dep ]; then
+                mlst+=($dep)
+            fi
+        done
+        if [ "${#mlst[@]}" -ge "1" ]; then
+            deps+=(${mlst[@]}); mlst=
+        fi
+    fi
+
+    if [ "${#deps[@]}" -ge "1" ]; then
+        echo "runtime/build dependency: ${deps[@]}"
+        echo "install the package(s) and try building $n again"
+        exit 1
+    fi
 }
 
 download() {
@@ -264,14 +309,7 @@ Bld() {
             echo "$pn: recipe file not found"; exit 1
         fi
 
-        if [ -n "$m" ]; then
-            for dep in ${m[@]}; do
-                if [ ! -f $inf/$dep ]; then
-                    mlst+=($dep)
-                fi
-            done
-            pan -a ${mlst[@]}
-        fi
+        builddep
 
         _rcs=$rcs; _pkg=$pkg; mkdir -p $arc $src
 
@@ -680,10 +718,12 @@ for i in $@; do
             echo "options:"
             echo "  reinstall                       force add a package"
             echo "  root=<directory>                change root directory"
+            echo "  skipdep                         skip dependency resolution"
             exit 1;;
         reinstall) reinst=true;;
         root=*)
             root=${i#*=};;
+        skipdep) skipdep=true;;
         -a|--add) _Add=true;;
         -A|--grp-add) _GrpAdd=true;;
         -b|--build) _Bld=true;;

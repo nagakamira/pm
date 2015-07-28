@@ -346,7 +346,7 @@ Bld() {
         fi
 
         rm -rf $_pkg $src /tmp/$n.recipe
-        rcs=$_rcs; pkg=$_pkg; p=
+        rcs=$_rcs; pkg=$_pkg; p=; unset -f build
     done
 }
 

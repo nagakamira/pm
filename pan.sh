@@ -26,6 +26,13 @@ skipdep=false
 NoExtract=false
 NoStrip=false
 
+AsRoot() {
+    if [[ ${EUID} -ne 0 ]] && [ "$root" = "/" ]; then
+        echo "This script must be run as root."
+        exit 1
+    fi
+}
+
 SetPrm() {
     chgrp -R users $rcs
     chmod -R g+w $rcs
@@ -107,7 +114,7 @@ RtDeps() {
 }
 
 Add() {
-    GetRcs
+    AsRoot; GetRcs
 
     for pn in $args; do
         if [ "${pn%=*}" = "root" ]; then continue; fi
@@ -176,7 +183,7 @@ Add() {
 }
 
 GrpAdd() {
-    GetRcs
+    AsRoot; GetRcs
 
     for gn in $args; do
         if [ "${gn%=*}" = "root" ]; then continue; fi
@@ -186,50 +193,6 @@ GrpAdd() {
     done
 
     GetPkg; args=${plst[@]}; Add
-}
-
-builddep() {
-    if [ ${#n[@]} -ge 2 ]; then
-        for i in ${!n[@]}; do
-            _d=($(declare -f package_${n[$i]} | sed -n 's/d=\(.*\);/\1/p' | tr -d "()" | tr -d "'"))
-            for dep in ${_d[@]}; do
-                if [ ! -f $inf/$dep ]; then
-                    dlst+=($dep)
-                fi
-            done
-        done
-        if [ "${#dlst[@]}" -ge "1" ]; then
-            deps+=(${dlst[@]}); dlst=
-        fi
-    elif [ -n "$d" ]; then
-        for dep in ${d[@]}; do
-            if [ ! -f $inf/$dep ]; then
-                dlst+=($dep)
-            fi
-        done
-        if [ "${#dlst[@]}" -ge "1" ]; then
-            deps+=(${dlst[@]}); dlst=
-        fi
-    fi
-
-    if [ -n "$m" ]; then
-        for dep in ${m[@]}; do
-            if [ ! -f $inf/$dep ]; then
-                mlst+=($dep)
-            fi
-        done
-        if [ "${#mlst[@]}" -ge "1" ]; then
-            deps+=(${mlst[@]}); mlst=
-        fi
-    fi
-
-    if [ "${#deps[@]}" -ge "1" ]; then
-        deps=($(echo ${deps[@]} | tr ' ' '\n' | sort -u | tr '\n' ' '))
-
-        echo "runtime/build dependency: ${deps[@]}"
-        echo "install the package(s) and try building $n again"
-        exit 1
-    fi
 }
 
 download() {
@@ -310,8 +273,6 @@ Bld() {
         else
             echo "$pn: recipe file not found"; exit 1
         fi
-
-        builddep
 
         _rcs=$rcs; _pkg=$pkg; mkdir -p $arc $src
 
@@ -405,6 +366,60 @@ GrpBld() {
     done
 }
 
+BldDep() {
+    GetRcs
+
+    for pn in $args; do
+        if  [[ -L "$rcs/$pn" && -d "$rcs/$pn" ]]; then continue; fi
+
+        if [ -f $rcs/$pn/recipe ]; then
+            . $rcs/$pn/recipe
+        else
+            echo "$pn: recipe file not found"; exit 1
+        fi
+
+        if [ ${#n[@]} -ge 2 ]; then
+            for i in ${!n[@]}; do
+                _d=($(declare -f package_${n[$i]} | sed -n 's/d=\(.*\);/\1/p' | tr -d "()" | tr -d "'"))
+                for dep in ${_d[@]}; do
+                    if [ ! -f $inf/$dep ]; then
+                        dlst+=($dep)
+                    fi
+                done
+            done
+            if [ "${#dlst[@]}" -ge "1" ]; then
+                deps+=(${dlst[@]}); dlst=
+            fi
+        elif [ -n "$d" ]; then
+            for dep in ${d[@]}; do
+                if [ ! -f $inf/$dep ]; then
+                    dlst+=($dep)
+                fi
+            done
+            if [ "${#dlst[@]}" -ge "1" ]; then
+                deps+=(${dlst[@]}); dlst=
+            fi
+        fi
+
+        if [ -n "$m" ]; then
+            for dep in ${m[@]}; do
+                if [ ! -f $inf/$dep ]; then
+                    mlst+=($dep)
+                fi
+            done
+            if [ "${#mlst[@]}" -ge "1" ]; then
+                deps+=(${mlst[@]}); mlst=
+            fi
+        fi
+    done
+
+    if [ "${#deps[@]}" -ge "1" ]; then
+        deps=($(echo ${deps[@]} | tr ' ' '\n' | sort -u | tr '\n' ' '))
+
+        args=${deps[@]}; Add
+    fi
+}
+
 Con() {
     out=/tmp/out.txt
 
@@ -417,9 +432,13 @@ Con() {
             done
         fi
     done
+
+    rm $out
 }
 
 Del() {
+    AsRoot
+
     for pn in $args; do
         if [ "${pn%=*}" = "root" ]; then continue; fi
 
@@ -473,6 +492,8 @@ Del() {
 }
 
 GrpDel() {
+    AsRoot
+
     for gn in $args; do
         if [ "${gn%=*}" = "root" ]; then continue; fi
 
@@ -554,8 +575,12 @@ Inf() {
 
         echo "program: $n"
         echo "version: $v"
-        echo "section: $s"
-        echo "depends: ${d[@]}"
+        if [ -n "$s" ]; then
+            echo "section: $s"
+        fi
+        if [ "${#d[@]}" -ge "1" ]; then
+            echo "depends: ${d[@]}"
+        fi
         if [ -n "$u" ]; then
             if [ "${#u[@]}" -gt "1" ]; then
                 for _u in ${u[@]}; do
@@ -714,6 +739,7 @@ for i in $@; do
             echo "  -G, --grp-list                  show all the groups"
             echo "  -i, --info <name>               show package information"
             echo "  -l, --list <name>               show package filelist"
+            echo "  -m, --make-deps <name>          add build dependencies"
             echo "  -o, --owner <path>              show the file ownership"
             echo "  -u, --update <name>             update a package"
             echo "  -U, --update-all                update all the packages"
@@ -737,6 +763,7 @@ for i in $@; do
         -G|--grp-list) _GrpLst=true;;
         -i|--info) _Inf=true;;
         -l|--list) _Lst=true;;
+        -m|--make-deps) _BldDep=true;;
         -o|--owner) _Own=true;;
         -u|--update) _Upd=true;;
         -U|--update-all) _GrpUpd=true;;
@@ -747,6 +774,7 @@ if [ "$_Add" = true ]; then shift; args=$@; Add; fi
 if [ "$_GrpAdd" = true ]; then shift; args=$@; GrpAdd; fi
 if [ "$_Bld" = true ]; then shift; args=$@; Bld; fi
 if [ "$_GrpBld" = true ]; then shift; args=$@; GrpBld; fi
+if [ "$_BldDep" = true ]; then shift; args=$@; BldDep; fi
 if [ "$_Con" = true ]; then shift; Con; fi
 if [ "$_Del" = true ]; then shift; args=$@; Del; fi
 if [ "$_GrpDel" = true ]; then shift; args=$@; GrpDel; fi

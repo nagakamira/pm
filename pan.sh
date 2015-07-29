@@ -49,7 +49,7 @@ PkgLst() {
         fi
 
         if  [[ -L "$rcs/$_pkg" && -d "$rcs/$_pkg" ]]; then
-            unset n v s d u p o; continue
+            unset n v r s d u p o; continue
         fi
 
         if [ ${#n[@]} -ge 2 ]; then
@@ -62,7 +62,7 @@ PkgLst() {
             if [ -z "$s" ]; then unset n v s d u p o; continue; fi
             if [ "$s" = "$gn" ]; then plst+=($n); fi
         fi
-        unset n v s d u p o
+        unset n v r s d u p o
     done
 
     plst=($(for i in ${plst[@]}; do echo $i; done | sort -u))
@@ -236,6 +236,7 @@ _package() {
     cd $pkg; mkdir -p $pkg/{$inf,$lst}
     echo "n=$n" >> $pkg/$inf/$n
     echo "v=$v" >> $pkg/$inf/$n
+    echo "r=$r" >> $pkg/$inf/$n
     echo "s=$s" >> $pkg/$inf/$n
     printf "%s " "d=(${d[@]})" >> $pkg/$inf/$n
     echo -e "" >> $pkg/$inf/$n
@@ -256,7 +257,7 @@ _package() {
         done
     fi
 
-    fakeroot -i $src/state.$n -- tar -cpJf $arc/$n-$v.$pkgext ./
+    fakeroot -i $src/state.$n -- tar -cpJf $arc/$n-$v-$r.$pkgext ./
 }
 
 Bld() {
@@ -279,6 +280,7 @@ Bld() {
         mkdir -p $arc $src
 
         if [ -z "$p" ]; then p=$n-$v; fi
+        if [ -z "$r" ]; then r=1; fi
 
         for opt in "${o[@]}"; do
             if [ "$opt" = "noextract" ]; then NoExtract=true; fi
@@ -321,7 +323,7 @@ Bld() {
 
         if [ ${#n[@]} -ge 2 ]; then
             for i in ${!n[@]}; do
-                n=${n[$i]}
+                n=${n[$i]}; _pwd_=`pwd`
                 pkg=$pkg/$n; mkdir -p $pkg
                 s=$(echo $(declare -f package_$n | sed -n 's/s=\(.*\);/\1/p'))
                 d=($(declare -f package_$n | sed -n 's/d=\(.*\);/\1/p' | tr -d "()" | tr -d "'"))
@@ -332,8 +334,9 @@ Bld() {
                     mkdir -p $pkg/$sys; cp $rcs/system.$n $pkg/$sys/$n
                 fi
 
-                _package; pkg=$_pkg; cd $_pwd
+                _package; pkg=$_pkg; cd $_pwd_
             done
+            n=(); cd $_pwd
         else
             pkg=$pkg/$n; mkdir -p $pkg
 
@@ -358,11 +361,13 @@ GrpBld() {
 
     for gn in $args; do PkgLst; done
 
+    if [ ! -d $grp ]; then mkdir -p $grp; fi 
+
     for _pkg_ in ${plst[@]}; do
-        if [ ! -f /tmp/$_pkg_ ]; then
+        if [ ! -f $grp/$_pkg_ ]; then
         	args=($_pkg_); Bld
             if [ $? -eq 0 ]; then
-                touch /tmp/$_pkg_
+                touch $grp/$_pkg_
             fi
         fi
     done
@@ -577,6 +582,7 @@ Inf() {
 
         echo "program: $n"
         echo "version: $v"
+        echo "version: $r"
         if [ -n "$s" ]; then
             echo "section: $s"
         fi

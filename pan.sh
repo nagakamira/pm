@@ -589,7 +589,7 @@ Inf() {
 
         echo "program: $n"
         echo "version: $v"
-        echo "version: $r"
+        echo "release: $r"
         if [ -n "$s" ]; then
             echo "section: $s"
         fi

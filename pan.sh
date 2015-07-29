@@ -644,14 +644,14 @@ Upd() {
             fi
         else
             if [ -f $rcs/$pn/recipe ]; then
-                . $rcs/$pn/recipe; v1=$v; v=
+                . $rcs/$pn/recipe; v1=$v; r1=$r; v=; r=
             else
                 echo "$pn: recipe file not found"
             fi
         fi
 
         if [ -f $inf/$n ]; then
-            . $inf/$n; v2=$v; v=; r2=$r; r=
+            . $inf/$n; v2=$v; r2=$r; v=; r=
         else
             continue
         fi

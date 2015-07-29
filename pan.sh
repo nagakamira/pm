@@ -361,9 +361,16 @@ GrpBld() {
 
     for gn in $args; do PkgLst; done
 
-    if [ ! -d $grp ]; then mkdir -p $grp; fi 
-
     for _pkg_ in ${plst[@]}; do
+        RtDeps $_pkg_
+    done
+    unset n v r s d u p o
+ 
+    deps=($(echo ${deps[@]} | tr ' ' '\n' | sort -u | tr '\n' ' '))
+
+    if [ ! -d $grp ]; then mkdir -p $grp; fi
+
+    for _pkg_ in ${deps[@]}; do
         if [ ! -f $grp/$_pkg_ ]; then
         	args=($_pkg_); Bld
             if [ $? -eq 0 ]; then

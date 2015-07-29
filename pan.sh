@@ -24,8 +24,6 @@ grpsys=false
 updrcs=true
 reinst=false
 skipdep=false
-NoExtract=false
-NoStrip=false
 
 AsRoot() {
     if [[ ${EUID} -ne 0 ]] && [ "$root" = "/" ]; then
@@ -267,6 +265,8 @@ Bld() {
     GetRcs
 
     for pn in $args; do
+        NoExtract=false; NoStrip=false
+
         if  [[ -L "$rcs/$pn" && -d "$rcs/$pn" ]]; then continue; fi
 
         if [ -f $rcs/$pn/recipe ]; then
@@ -275,7 +275,8 @@ Bld() {
             echo "$pn: recipe file not found"; exit 1
         fi
 
-        _rcs=$rcs; _pkg=$pkg; mkdir -p $arc $src
+        _rcs=$rcs; _pkg=$pkg; _pwd=`pwd`
+        mkdir -p $arc $src
 
         if [ -z "$p" ]; then p=$n-$v; fi
 
@@ -312,7 +313,7 @@ Bld() {
             sed -i -e "s#package() {#package() {\n    set -e#" /tmp/$n.recipe
         fi
 
-        . /tmp/$n.recipe; rcs=$rcs/$n; _pwd=`pwd`
+        . /tmp/$n.recipe; rcs=$rcs/$n
 
         export CHOST CFLAGS CXXFLAGS LDFLAGS MAKEFLAGS arc pkg rcs src n v u p
 
@@ -342,11 +343,11 @@ Bld() {
                 mkdir -p $pkg/$sys; cp $rcs/system $pkg/$sys/$n
             fi
 
-            _package
+            _package; cd $_pwd
         fi
 
         rm -rf $_pkg $src /tmp/$n.recipe
-        rcs=$_rcs; pkg=$_pkg; p=; unset -f build
+        rcs=$_rcs; pkg=$_pkg; p=; o=; unset -f build
     done
 }
 

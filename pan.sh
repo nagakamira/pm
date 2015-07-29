@@ -350,7 +350,7 @@ Bld() {
         fi
 
         rm -rf $_pkg $src /tmp/$n.recipe
-        rcs=$_rcs; pkg=$_pkg; p=; o=; unset -f build
+        rcs=$_rcs; pkg=$_pkg; p=; o=(); u=(); unset -f build
     done
 }
 

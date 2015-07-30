@@ -26,6 +26,7 @@ To build a package you need to create the /pkg/rcs directory so that it contains
 
 	n=grep
 	v=2.21
+	r=1
 	s=base
 	d=('glibc' 'pcre' 'texinfo')
 	u=ftp://ftp.gnu.org/gnu/$n/$n-$v.tar.xz
@@ -38,7 +39,7 @@ To build a package you need to create the /pkg/rcs directory so that it contains
 	    rm -f $pkg/usr/share/info/dir
 	}
 
-The source information has letters that stands for: (n)ame, (v)ersion, (s)ection, (d)ependency and (u)rl. The order is not important, and if there is no package dependency, then d can be omitted. Pan does automatically cd to ~/build/src/grep-2.21. If you want to cd $src directory, then add "p=./", which stands for (p)ath. $pkg defaults to ~/build/pkg/grep-2.21. The configuration file is stored at /etc/pan.conf, and can be customized if needed. Now, to build the grep package, simply run:
+The source information has letters that stands for: (n)ame, (v)ersion, (r)elease, (s)ection, (d)ependency and (u)rl. The order is not important, and if there is no package dependency, then d can be omitted. Pan does automatically cd to ~/build/src/grep-2.21. If you want to cd $src(~/build/src) directory, then add "p=./", which stands for (p)ath. $pkg defaults to ~/build/pkg/grep-2.21. The configuration file is stored at /etc/pan.conf, and can be customized if needed. Now, to build the grep package, simply run:
 
 	pan -b grep
 

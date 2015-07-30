@@ -49,7 +49,7 @@ PkgLst() {
         fi
 
         if  [[ -L "$rcs/$_pkg" && -d "$rcs/$_pkg" ]]; then
-            unset n v r s d u p o; continue
+            unset n v r s d u b p o; continue
         fi
 
         if [ ${#n[@]} -ge 2 ]; then
@@ -59,10 +59,10 @@ PkgLst() {
                 if [ "$s" = "$gn" ]; then plst+=(${n[$i]}); fi
             done
         else
-            if [ -z "$s" ]; then unset n v s d u p o; continue; fi
+            if [ -z "$s" ]; then unset n v s d u b p o; continue; fi
             if [ "$s" = "$gn" ]; then plst+=($n); fi
         fi
-        unset n v r s d u p o
+        unset n v r s d u b p o
     done
 
     plst=($(for i in ${plst[@]}; do echo $i; done | sort -u))
@@ -85,6 +85,8 @@ GetPkg() {
     if [ "${#_pkg_[@]}" -ge "1" ]; then
         echo "missing archive(s): ${_pkg_[@]}"; exit 1
     fi
+
+    unset n v r s d u b p o
 }
 
 RtDeps() {
@@ -110,6 +112,27 @@ RtDeps() {
             RtDeps $dep
         fi
     done
+}
+
+backup() {
+    if [ -n "$b" ]; then
+        for _f in ${b[@]}; do
+            if [ -f $root/$_f ]; then
+                cp $root/$_f $root/${_f}.bak
+            fi
+        done
+    fi
+}
+
+restore() {
+    if [ -n "$b" ]; then
+        for _f in ${b[@]}; do
+            if [ -f $root/${_f}.bak ]; then
+                cp $root/$_f $root/${_f}.new
+                mv $root/${_f}.bak $root/$_f
+            fi
+        done
+    fi
 }
 
 Add() {
@@ -159,9 +182,13 @@ Add() {
     for dep in ${_deps[@]}; do
         . $rcs/$dep/recipe
         if  [[ -L "$rcs/$dep" && -d "$rcs/$dep" ]]; then n=$dep; fi
+
         echo "installing: $n ($v)"
+        backup
         tar -C $root -xpf $arc/$n-$v-$r.$pkgext
         chmod 777 $root/pkg &>/dev/null
+        restore
+        unset b
 
         if [ ! -d $root/$log ]; then mkdir -p $root/$log; fi
         echo "[$(date +%Y-%m-%d) $(date +%H:%M)] [ADD] $n ($v)" >> $root/$log/add
@@ -364,7 +391,7 @@ GrpBld() {
     for _pkg_ in ${plst[@]}; do
         RtDeps $_pkg_
     done
-    unset n v r s d u p o
+    unset n v r s d u b p o
  
     deps=($(echo ${deps[@]} | tr ' ' '\n' | sort -u | tr '\n' ' '))
 
@@ -694,8 +721,11 @@ Upd() {
 
         rn=$lst/$n; cp $rn $rn.bak
 
+        backup
         tar -C $root -xpf $arc/$n-$v-$r.$pkgext
         chmod 777 $root/pkg &>/dev/null
+        restore
+        unset b
 
         list=$(comm -23 <(sort $rn.bak) <(sort $rn))
 

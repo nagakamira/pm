@@ -388,6 +388,12 @@ GrpBld() {
 
     for gn in $args; do PkgLst; done
 
+    for _pkg in $(ls $rcs); do
+        if [ -f $rcs/$_pkg/recipe ]; then
+            plst+=($_pkg)
+        fi
+    done
+
     for _pkg_ in ${plst[@]}; do
         RtDeps $_pkg_
     done
@@ -653,9 +659,11 @@ Lst() {
 
 Own() {
     if [ -n "$pt" ]; then
-        _own=$(grep $pt $lst/*)
+        _own=$(grep "$pt" $lst/*)
         for ln in $_own; do
-            echo "${ln#$lst/}"
+            if [ "$pt" = "${ln#*:}" ]; then
+                echo "${ln#$lst/}"
+            fi
         done
     fi
 }

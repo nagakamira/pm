@@ -38,8 +38,8 @@ SetPrm() {
 }
 GetRcs() {
     if [ ! -d $rcs ]; then
-    	git clone $gitrcs $rcs; SetPrm
-	fi
+        git clone $gitrcs $rcs; SetPrm
+    fi
 }
 
 PkgLst() {
@@ -73,13 +73,11 @@ GetPkg() {
         . $rcs/$_pkg/recipe
         if  [[ -L "$rcs/$_pkg" && -d "$rcs/$_pkg" ]]; then n=$_pkg; fi
         if [ ! -f $arc/$n-$v-$r.$pkgext ]; then
-        	if [ ! -f $arc/$n-$v.$pkgext ]; then
-            	echo "downloading: $n-$v-$r.$pkgext"
-            	curl -f -L -o $arc/$n-$v-$r.$pkgext $getpkg/$n-$v-$r.$pkgext
-            	if [ ! -f $arc/$n-$v-$r.$pkgext ]; then
-                	echo "$n: archive file not found"
-                	_pkg_+=($n)
-            	fi
+            echo "downloading: $n-$v-$r.$pkgext"
+            curl -f -L -o $arc/$n-$v-$r.$pkgext $getpkg/$n-$v-$r.$pkgext
+            if [ ! -f $arc/$n-$v-$r.$pkgext ]; then
+                echo "$n: archive file not found"
+                _pkg_+=($n)
             fi
         fi
     done
@@ -162,11 +160,7 @@ Add() {
         . $rcs/$dep/recipe
         if  [[ -L "$rcs/$dep" && -d "$rcs/$dep" ]]; then n=$dep; fi
         echo "installing: $n ($v)"
-        if [ -f $arc/$n-$v.$pkgext ]; then
-        	tar -C $root -xpf $arc/$n-$v.$pkgext
-        elif [ -f $arc/$n-$v-$r.$pkgext ]; then
-        	tar -C $root -xpf $arc/$n-$v-$r.$pkgext
-        fi
+        tar -C $root -xpf $arc/$n-$v-$r.$pkgext
         chmod 777 $root/pkg &>/dev/null
 
         if [ ! -d $root/$log ]; then mkdir -p $root/$log; fi
@@ -378,7 +372,7 @@ GrpBld() {
 
     for _pkg_ in ${deps[@]}; do
         if [ ! -f $grp/$_pkg_ ]; then
-        	args=($_pkg_); Bld
+            args=($_pkg_); Bld
             if [ $? -eq 0 ]; then
                 touch $grp/$_pkg_
             fi
@@ -669,8 +663,6 @@ Upd() {
             continue
         fi
 
-        if [ -z "$r2" ]; then r2=1; fi
-
         v=$(echo -e "$v1\n$v2" | sort -V | tail -n1)
         r=$(echo -e "$r1\n$r2" | sort -V | tail -n1)
 
@@ -702,11 +694,7 @@ Upd() {
 
         rn=$lst/$n; cp $rn $rn.bak
 
-        if [ -f $arc/$n-$v.$pkgext ]; then
-        	tar -C $root -xpf $arc/$n-$v.$pkgext
-        elif [ -f $arc/$n-$v-$r.$pkgext ]; then
-        	tar -C $root -xpf $arc/$n-$v-$r.$pkgext
-        fi
+        tar -C $root -xpf $arc/$n-$v-$r.$pkgext
         chmod 777 $root/pkg &>/dev/null
 
         list=$(comm -23 <(sort $rn.bak) <(sort $rn))

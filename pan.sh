@@ -73,11 +73,13 @@ GetPkg() {
         . $rcs/$_pkg/recipe
         if  [[ -L "$rcs/$_pkg" && -d "$rcs/$_pkg" ]]; then n=$_pkg; fi
         if [ ! -f $arc/$n-$v-$r.$pkgext ]; then
-            echo "downloading: $n-$v-$r.$pkgext"
-            curl -f -L -o $arc/$n-$v-$r.$pkgext $getpkg/$n-$v-$r.$pkgext
-            if [ ! -f $arc/$n-$v-$r.$pkgext ]; then
-                echo "$n: archive file not found"
-                _pkg_+=($n)
+        	if [ ! -f $arc/$n-$v.$pkgext ]; then
+            	echo "downloading: $n-$v-$r.$pkgext"
+            	curl -f -L -o $arc/$n-$v-$r.$pkgext $getpkg/$n-$v-$r.$pkgext
+            	if [ ! -f $arc/$n-$v-$r.$pkgext ]; then
+                	echo "$n: archive file not found"
+                	_pkg_+=($n)
+            	fi
             fi
         fi
     done
@@ -160,7 +162,11 @@ Add() {
         . $rcs/$dep/recipe
         if  [[ -L "$rcs/$dep" && -d "$rcs/$dep" ]]; then n=$dep; fi
         echo "installing: $n ($v)"
-        tar -C $root -xpf $arc/$n-$v-$r.$pkgext
+        if [ -f $arc/$n-$v.$pkgext ]; then
+        	tar -C $root -xpf $arc/$n-$v.$pkgext
+        elif [ -f $arc/$n-$v-$r.$pkgext ]; then
+        	tar -C $root -xpf $arc/$n-$v-$r.$pkgext
+        fi
         chmod 777 $root/pkg &>/dev/null
 
         if [ ! -d $root/$log ]; then mkdir -p $root/$log; fi
@@ -663,6 +669,8 @@ Upd() {
             continue
         fi
 
+        if [ -z "$r2" ]; then r2=1; fi
+
         v=$(echo -e "$v1\n$v2" | sort -V | tail -n1)
         r=$(echo -e "$r1\n$r2" | sort -V | tail -n1)
 
@@ -694,7 +702,11 @@ Upd() {
 
         rn=$lst/$n; cp $rn $rn.bak
 
-        tar -C $root -xpf $arc/$n-$v-$r.$pkgext
+        if [ -f $arc/$n-$v.$pkgext ]; then
+        	tar -C $root -xpf $arc/$n-$v.$pkgext
+        elif [ -f $arc/$n-$v-$r.$pkgext ]; then
+        	tar -C $root -xpf $arc/$n-$v-$r.$pkgext
+        fi
         chmod 777 $root/pkg &>/dev/null
 
         list=$(comm -23 <(sort $rn.bak) <(sort $rn))

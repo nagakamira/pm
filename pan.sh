@@ -388,12 +388,6 @@ GrpBld() {
 
     for gn in $args; do PkgLst; done
 
-    for _pkg in $(ls $rcs); do
-        if [ -f $rcs/$_pkg/recipe ]; then
-            plst+=($_pkg)
-        fi
-    done
-
     for _pkg_ in ${plst[@]}; do
         RtDeps $_pkg_
     done

@@ -346,7 +346,7 @@ Bld() {
 
         . $tmpfile; rcs=$rcs/$n
 
-        export CHOST CFLAGS CXXFLAGS LDFLAGS MAKEFLAGS arc pkg rcs src n v u p
+        export CHOST CFLAGS CXXFLAGS LDFLAGS MAKEFLAGS pkg rcs src tmp n v u p
 
         if type build >/dev/null 2>&1; then build; fi
 

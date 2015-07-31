@@ -245,7 +245,7 @@ extract() {
             echo "extracting: $file"
             case $file in
                 *.tar.bz2) tar -C $src -jxpf $tmp/$file;;
-                *.bz2)     bzip2 -dc $tmp/$file > $_src/${file%.*};;
+                *.bz2)     bzip2 -dc $tmp/$file > $src/${file%.*};;
                 *.tar.xz)  tar -C $src -xpf $tmp/$file;;
                 *.tar.gz)  tar -C $src -xpf $tmp/$file;;
                 *.tgz)     tar -C $src -xpf $tmp/$file;;

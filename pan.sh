@@ -232,9 +232,9 @@ download() {
         else
             file=$(basename $1); url=$1
         fi
-        if [ ! -f $arc/$file ]; then
+        if [ ! -f $tmp/$file ]; then
             echo "downloading: $file"
-            curl -L -o $arc/$file $url
+            curl -L -o $tmp/$file $url
         fi
     fi
 }
@@ -244,15 +244,15 @@ extract() {
         if [ "$NoExtract" = false ]; then
             echo "extracting: $file"
             case $file in
-                *.tar.bz2) tar -C $src -jxpf $arc/$file;;
-                *.bz2)     bzip2 -dc $arc/$file > $src/${file%.*};;
-                *.tar.xz)  tar -C $src -xpf $arc/$file;;
-                *.tar.gz)  tar -C $src -xpf $arc/$file;;
-                *.tgz)     tar -C $src -xpf $arc/$file;;
-                *.tar)     tar -C $src -xpf $arc/$file;;
-                *.gz)      gunzip -c $arc/$file > $src/${file%.*};;
-                *.zip)     unzip -d $src $arc/$file;;
-                *.7z)      7za x $file -o$src;;
+                *.tar.bz2) tar -C $src -jxpf $tmp/$file;;
+                *.bz2)     bzip2 -dc $tmp/$file > $_src/${file%.*};;
+                *.tar.xz)  tar -C $src -xpf $tmp/$file;;
+                *.tar.gz)  tar -C $src -xpf $tmp/$file;;
+                *.tgz)     tar -C $src -xpf $tmp/$file;;
+                *.tar)     tar -C $src -xpf $tmp/$file;;
+                *.gz)      gunzip -c $tmp/$file > $src/${file%.*};;
+                *.zip)     unzip -d $src $tmp/$file;;
+                *.7z)      7za x $tmp/$file -o$src;;
                 *)         echo "$file: not supported";;
             esac
         fi
@@ -284,7 +284,7 @@ _package() {
         done
     fi
 
-    fakeroot -i $src/state.$n -- tar -cpJf $arc/$n-$v-$r.$pkgext ./
+    fakeroot -i $src/state.$n -- tar -cpJf $bld/arc/$n-$v-$r.$pkgext ./
 }
 
 Bld() {
@@ -304,7 +304,7 @@ Bld() {
         fi
 
         _rcs=$rcs; _pkg=$pkg; _pwd=`pwd`
-        mkdir -p $arc $src
+        mkdir -p $bld/arc $src $tmp
 
         if [ -z "$p" ]; then p=$n-$v; fi
         if [ -z "$r" ]; then r=1; fi

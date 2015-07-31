@@ -33,12 +33,12 @@ AsRoot() {
 }
 
 SetPrm() {
-    chgrp -R users $rcs
-    chmod -R g+w $rcs
+    chgrp -R users $1
+    chmod -R g+w $1
 }
 GetRcs() {
     if [ ! -d $rcs ]; then
-        git clone $gitrcs $rcs; SetPrm
+        git clone $gitrcs $rcs; SetPrm $rcs
     fi
 }
 
@@ -331,18 +331,20 @@ Bld() {
         echo "building: $n ($v)"
         if [ -d "$src/$p" ]; then cd $src/$p; else cd $src; fi
 
-        cp $rcs/$n/recipe /tmp/$n.recipe
-        sed -i -e "s#build() {#build() {\n    set -e#" /tmp/$n.recipe
+        tmpfile=$(mktemp /tmp/$n.XXXXXXXXXX)
+
+        cp $rcs/$n/recipe $tmpfile  
+        sed -i -e "s#build() {#build() {\n    set -e#" $tmpfile
 
         if [ ${#n[@]} -ge 2 ]; then
             for i in ${!n[@]}; do
-                sed -i -e "s#package_${n[$i]}() {#package_${n[$i]}() {\n    set -e#" /tmp/$n.recipe
+                sed -i -e "s#package_${n[$i]}() {#package_${n[$i]}() {\n    set -e#" $tmpfile
             done
         else
-            sed -i -e "s#package() {#package() {\n    set -e#" /tmp/$n.recipe
+            sed -i -e "s#package() {#package() {\n    set -e#" $tmpfile
         fi
 
-        . /tmp/$n.recipe; rcs=$rcs/$n
+        . $tmpfile; rcs=$rcs/$n
 
         export CHOST CFLAGS CXXFLAGS LDFLAGS MAKEFLAGS arc pkg rcs src n v u p
 
@@ -376,7 +378,7 @@ Bld() {
             _package; cd $_pwd
         fi
 
-        rm -rf $_pkg $src /tmp/$n.recipe
+        rm -rf $_pkg $src $tmpfile
         rcs=$_rcs; pkg=$_pkg; p=; o=(); u=(); unset -f build
     done
 }
@@ -665,7 +667,7 @@ Own() {
 Upd() {
     if [ "$updrcs" = true ]; then
         if [ -d $rcs ]; then
-            cd $rcs; git pull origin master; SetPrm
+            cd $rcs; git pull origin master; SetPrm $rcs
         else
             GetRcs
         fi
@@ -752,7 +754,7 @@ Upd() {
 
 GrpUpd() {
     if [ -d $rcs ]; then
-        cd $rcs; git pull origin master; SetPrm
+        cd $rcs; git pull origin master; SetPrm $rcs
     else
         GetRcs
     fi

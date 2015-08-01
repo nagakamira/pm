@@ -57,15 +57,35 @@ PkgLst() {
                 s=$(echo $(declare -f package_${n[$i]} | sed -n 's/s=\(.*\);/\1/p'))
                 if [ -z "$s" ]; then continue; fi
                 if [ "$s" = "$gn" ]; then plst+=(${n[$i]}); fi
+                if [ -n "$s" ]; then _plst+=(${n[$i]}); fi
             done
         else
             if [ -z "$s" ]; then unset n v s d u b p o; continue; fi
             if [ "$s" = "$gn" ]; then plst+=($n); fi
+            if [ -n "$s" ]; then _plst+=($n); fi
         fi
         unset n v r s d u b p o
     done
 
     plst=($(for i in ${plst[@]}; do echo $i; done | sort -u))
+    _plst=($(for i in ${_plst[@]}; do echo $i; done | sort -u))
+}
+
+reducedeps() {
+	for array in ${_plst[@]}; do
+		if [[ ${plst[*]} =~ " $array " ]]; then continue
+		elif [[ ${plst[*]} =~ "$array" ]]; then continue
+		else __plst+=($array)
+		fi
+	done
+
+    for array in ${deps[@]}; do
+		if [[ ${__plst[*]} =~ " $array " ]]; then continue
+		elif [[ ${__plst[*]} =~ "$array" ]]; then continue
+		else __deps+=($array)
+		fi
+    done
+    deps=(${__deps[@]})
 }
 
 GetPkg() {
@@ -112,6 +132,15 @@ RtDeps() {
             RtDeps $dep
         fi
     done
+}
+
+GrpDep() {
+    for _pkg_ in ${plst[@]}; do
+        RtDeps $_pkg_
+    done
+    unset n v r s d u b p o
+ 
+    deps=($(echo ${deps[@]} | tr ' ' '\n' | sort -u | tr '\n' ' '))
 }
 
 backup() {
@@ -390,12 +419,7 @@ GrpBld() {
 
     for gn in $args; do PkgLst; done
 
-    for _pkg_ in ${plst[@]}; do
-        RtDeps $_pkg_
-    done
-    unset n v r s d u b p o
- 
-    deps=($(echo ${deps[@]} | tr ' ' '\n' | sort -u | tr '\n' ' '))
+    GrpDep; reducedeps
 
     if [ ! -d $grp ]; then mkdir -p $grp; fi
 
@@ -759,20 +783,24 @@ GrpUpd() {
         GetRcs
     fi
 
-    for _pkg in $(ls $rcs); do
-        if [ -f $rcs/$_pkg/recipe ]; then
-           . $rcs/$_pkg/recipe
-        fi
-        if [ ${#n[@]} -ge 2 ]; then
-            for i in ${!n[@]}; do
-                plst+=(${n[$i]})
-            done
-        else
-            plst+=($n)
-        fi
-    done
-
-    plst=($(for i in ${plst[@]}; do echo $i; done | sort -u))
+    if [ -n "$args" ]; then
+    	for gn in ${args[@]}; do PkgLst; done
+    	GrpDep; reducedeps; plst=(${deps[@]})
+    else
+	    for _pkg in $(ls $rcs); do
+    	    if [ -f $rcs/$_pkg/recipe ]; then
+        	   . $rcs/$_pkg/recipe
+        	fi
+        	if [ ${#n[@]} -ge 2 ]; then
+            	for i in ${!n[@]}; do
+                	plst+=(${n[$i]})
+            	done
+        	else
+            	plst+=($n)
+        	fi
+    	done
+	    plst=($(for i in ${plst[@]}; do echo $i; done | sort -u))
+    fi
 
     updrcs=false; args=${plst[@]}; Upd
 }
@@ -798,7 +826,7 @@ for i in $@; do
             echo "  -m, --make-deps <name>          add build dependencies"
             echo "  -o, --owner <path>              show the file ownership"
             echo "  -u, --update <name>             update a package"
-            echo "  -U, --update-all                update all the packages"
+            echo "  -U, --update-all (groupname)    update all the packages"
             echo "options:"
             echo "  reinstall                       force add a package"
             echo "  root=<directory>                change root directory"
@@ -840,4 +868,4 @@ if [ "$_Inf" = true ]; then shift; pn=$1; Inf; fi
 if [ "$_Lst" = true ]; then shift; pn=$1; Lst; fi
 if [ "$_Own" = true ]; then shift; pt=$1; Own; fi
 if [ "$_Upd" = true ]; then shift; args=$@; Upd; fi
-if [ "$_GrpUpd" = true ]; then shift; GrpUpd; fi
+if [ "$_GrpUpd" = true ]; then shift; args=$@; GrpUpd; fi

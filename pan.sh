@@ -72,18 +72,18 @@ PkgLst() {
 }
 
 reducedeps() {
-	for array in ${_plst[@]}; do
-		if [[ ${plst[*]} =~ " $array " ]]; then continue
-		elif [[ ${plst[*]} =~ "$array" ]]; then continue
-		else __plst+=($array)
-		fi
-	done
+    for array in ${_plst[@]}; do
+        if [[ ${plst[*]} =~ " $array " ]]; then continue
+        elif [[ ${plst[*]} =~ "$array" ]]; then continue
+        else __plst+=($array)
+        fi
+    done
 
     for array in ${deps[@]}; do
-		if [[ ${__plst[*]} =~ " $array " ]]; then continue
-		elif [[ ${__plst[*]} =~ "$array" ]]; then continue
-		else __deps+=($array)
-		fi
+        if [[ ${__plst[*]} =~ " $array " ]]; then continue
+        elif [[ ${__plst[*]} =~ "$array" ]]; then continue
+        else __deps+=($array)
+        fi
     done
     deps=(${__deps[@]})
 }
@@ -784,22 +784,22 @@ GrpUpd() {
     fi
 
     if [ -n "$args" ]; then
-    	for gn in ${args[@]}; do PkgLst; done
-    	GrpDep; reducedeps; plst=(${deps[@]})
+        for gn in ${args[@]}; do PkgLst; done
+        GrpDep; reducedeps; plst=(${deps[@]})
     else
-	    for _pkg in $(ls $rcs); do
-    	    if [ -f $rcs/$_pkg/recipe ]; then
-        	   . $rcs/$_pkg/recipe
-        	fi
-        	if [ ${#n[@]} -ge 2 ]; then
-            	for i in ${!n[@]}; do
-                	plst+=(${n[$i]})
-            	done
-        	else
-            	plst+=($n)
-        	fi
-    	done
-	    plst=($(for i in ${plst[@]}; do echo $i; done | sort -u))
+        for _pkg in $(ls $rcs); do
+            if [ -f $rcs/$_pkg/recipe ]; then
+               . $rcs/$_pkg/recipe
+            fi
+            if [ ${#n[@]} -ge 2 ]; then
+                for i in ${!n[@]}; do
+                    plst+=(${n[$i]})
+                done
+            else
+                plst+=($n)
+            fi
+        done
+        plst=($(for i in ${plst[@]}; do echo $i; done | sort -u))
     fi
 
     updrcs=false; args=${plst[@]}; Upd

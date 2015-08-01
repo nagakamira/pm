@@ -67,6 +67,7 @@ PkgLst() {
         unset n v r s d u b p o
     done
 
+    unset _pkg
     plst=($(for i in ${plst[@]}; do echo $i; done | sort -u))
     _plst=($(for i in ${_plst[@]}; do echo $i; done | sort -u))
 }
@@ -88,6 +89,15 @@ reducedeps() {
     deps=(${__deps[@]})
 }
 
+reduceupds() {
+    for array in ${_ulst[@]}; do
+        if [[ ${slst[*]} =~ " $array " ]]; then continue
+        elif [[ ${slst[*]} =~ "$array" ]]; then continue
+        else __slst+=($array)
+        fi
+    done
+}
+
 GetPkg() {
     for _pkg in ${plst[@]}; do
         . $rcs/$_pkg/recipe
@@ -106,7 +116,7 @@ GetPkg() {
         echo "missing archive(s): ${_pkg_[@]}"; exit 1
     fi
 
-    unset n v r s d u b p o
+    unset _pkg n v r s d u b p o
 }
 
 RtDeps() {
@@ -138,7 +148,7 @@ GrpDep() {
     for _pkg_ in ${plst[@]}; do
         RtDeps $_pkg_
     done
-    unset n v r s d u b p o
+    unset _pkg_ n v r s d u b p o
  
     deps=($(echo ${deps[@]} | tr ' ' '\n' | sort -u | tr '\n' ' '))
 }
@@ -719,6 +729,9 @@ Upd() {
             continue
         fi
 
+        # backward compatibility
+        if [ -z "$r2" ]; then r2=1; fi
+
         v=$(echo -e "$v1\n$v2" | sort -V | tail -n1)
         r=$(echo -e "$r1\n$r2" | sort -V | tail -n1)
 
@@ -786,7 +799,7 @@ GrpUpd() {
 
     if [ -n "$args" ]; then
         for gn in ${args[@]}; do PkgLst; done
-        GrpDep; reducedeps; plst=(${deps[@]})
+        GrpDep; reducedeps; _ulst=(${deps[@]})
     else
         for _pkg in $(ls $rcs); do
             if [ -f $rcs/$_pkg/recipe ]; then
@@ -800,10 +813,18 @@ GrpUpd() {
                 plst+=($n)
             fi
         done
-        plst=($(for i in ${plst[@]}; do echo $i; done | sort -u))
+        unset _pkg
+        _ulst=($(for i in ${plst[@]}; do echo $i; done | sort -u))
     fi
 
-    updrcs=false; args=${plst[@]}; Upd
+    if [ -n "$skipupd" ]; then
+        plst=(); _plst=(); deps=()
+        for gn in ${skipupd[@]}; do PkgLst; done
+        GrpDep; slst=(${plst[@]}); reduceupds; _ulst=(${__slst[@]})
+    fi
+
+    plst=(); _plst=(); deps=()
+    updrcs=false; args=${_ulst[@]}; Upd
 }
 
 if [ $# -eq 0 ]; then $0 -h; fi

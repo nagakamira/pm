@@ -247,6 +247,7 @@ GrpAdd() {
         PkgLst
     done
 
+    GrpDep; reducedeps; plst=(${deps[@]})
     GetPkg; args=${plst[@]}; Add
 }
 

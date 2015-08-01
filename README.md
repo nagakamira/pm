@@ -69,6 +69,9 @@ Say that grep has a newer release and you have built it and want to update it. J
 
 	pan -u grep
 
+Updating packages belonging to a certain group:
+    pan -U base
+
 Updating all the packages works like this:
 
 	pan -U

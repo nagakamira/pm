@@ -751,11 +751,11 @@ Upd() {
     plst=(${ulst[@]}); GetPkg
 
     for _pkg in ${ulst[@]}; do
-        . $inf/$_pkg; _v=$v
+        . $inf/$_pkg; _v=$v; _r=$r
         . $rcs/$_pkg/recipe
         if  [[ -L "$rcs/$_pkg" && -d "$rcs/$_pkg" ]]; then n=$_pkg; fi
 
-        echo "updating: $n ($_v -> $v)"
+        echo "updating: $n ($_v-$_r -> $v-$r)"
 
         if [ -f "$sys/$n" ]; then . $sys/$n
             if type upd_ >/dev/null 2>&1; then upd_; fi

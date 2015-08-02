@@ -73,12 +73,15 @@ Say that grep has a newer release and you have built it and want to update it. J
     pan -u grep
 
 Updating packages belonging to a certain group:
+
     pan -U base
 
 Updating all the packages works like this:
+
     pan -U
 
 If you want to update the /pkg/rcs without updating package(s), run:
+
     pan -u
 
 If you have built and installed several packages and want to know if there are conflicting files, run:

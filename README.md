@@ -34,6 +34,9 @@ To build a package you need to create the /pkg/rcs directory so that it contains
 	build() {
     	./configure --prefix=/usr
     	make
+    }
+
+    package() {
     	make DESTDIR=$pkg install
 
 	    rm -f $pkg/usr/share/info/dir
@@ -73,8 +76,10 @@ Updating packages belonging to a certain group:
     pan -U base
 
 Updating all the packages works like this:
-
 	pan -U
+
+If you want to update the /pkg/rcs without updating package(s), run:
+	pan -u
 
 If you have built and installed several packages and want to know if there are conflicting files, run:
 

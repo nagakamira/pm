@@ -262,7 +262,10 @@ GrpAdd() {
 }
 
 download() {
-    if [ "${1%://*}" = "git" ]; then
+    if [[ $1 == git+* ]]; then
+    	_giturl=${1#*+}; shift
+    	git clone $_giturl ${@} $src/$n-$v
+    elif [ "${1%://*}" = "git" ]; then
         if [ ! -d $src/$n-$v ]; then
             git clone $1 $src/$n-$v
         fi
@@ -280,7 +283,7 @@ download() {
 }
 
 extract() {
-    if [ ! "${1%://*}" = "git" ]; then
+    if [ ! "${1%://*}" = "git" ] && [[ $1 != git+* ]]; then
         if [ "$NoExtract" = false ]; then
             echo "extracting: $file"
             case $file in

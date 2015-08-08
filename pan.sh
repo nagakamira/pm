@@ -260,8 +260,7 @@ GrpAdd() {
         PkgLst
     done
 
-    GrpDep; echo ${deps[@]}; reducedeps; plst=(${deps[@]})
-    echo ${deps[@]}
+    GrpDep; reducedeps; plst=(${deps[@]})
     GetPkg; args=${plst[@]}; Add
 }
 

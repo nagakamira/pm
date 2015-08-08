@@ -74,15 +74,13 @@ PkgLst() {
 
 reducedeps() {
     for array in ${_plst[@]}; do
-        if [[ ${plst[*]} =~ " $array " ]]; then continue
-        elif [[ ${plst[*]} =~ "$array" ]]; then continue
+        if [[ " ${plst[*]} " =~ " $array " ]]; then continue
         else __plst+=($array)
         fi
     done
 
     for array in ${deps[@]}; do
-        if [[ ${__plst[*]} =~ " $array " ]]; then continue
-        elif [[ ${__plst[*]} =~ "$array" ]]; then continue
+        if [[ " ${__plst[*]} " =~ " $array " ]]; then continue
         else __deps+=($array)
         fi
     done
@@ -91,8 +89,7 @@ reducedeps() {
 
 reduceupds() {
     for array in ${_ulst[@]}; do
-        if [[ ${slst[*]} =~ " $array " ]]; then continue
-        elif [[ ${slst[*]} =~ "$array" ]]; then continue
+        if [[ " ${slst[*]} " =~ " $array " ]]; then continue
         else __slst+=($array)
         fi
     done
@@ -135,11 +132,8 @@ RtDeps() {
 
     deps=(${deps[@]} $1)
     for dep in ${d[@]}; do
-        if [[ ${deps[*]} =~ " $dep " ]]; then
+        if [[ " ${deps[*]} " =~ " $dep " ]]; then
             continue
-        elif [[ ${deps[*]} =~ "$dep" ]]; then
-            deps=(${deps[@]} $dep)
-            RtDeps $dep
         else
             deps=(${deps[@]} $dep)
             RtDeps $dep
@@ -261,7 +255,7 @@ GrpAdd() {
     done
 
     GrpDep; reducedeps; plst=(${deps[@]})
-    GetPkg; args=${plst[@]}; Add
+    GetPkg; skipdep=true; args=${plst[@]}; Add
 }
 
 download() {

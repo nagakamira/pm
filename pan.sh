@@ -137,6 +137,9 @@ RtDeps() {
     for dep in ${d[@]}; do
         if [[ ${deps[*]} =~ " $dep " ]]; then
             continue
+        elif [[ ${deps[*]} =~ "$dep" ]]; then
+            deps=(${deps[@]} $dep)
+            RtDeps $dep
         else
             deps=(${deps[@]} $dep)
             RtDeps $dep
@@ -257,7 +260,8 @@ GrpAdd() {
         PkgLst
     done
 
-    GrpDep; reducedeps; plst=(${deps[@]})
+    GrpDep; echo ${deps[@]}; reducedeps; plst=(${deps[@]})
+    echo ${deps[@]}
     GetPkg; args=${plst[@]}; Add
 }
 
@@ -502,10 +506,10 @@ BldDep() {
 }
 
 Con() {
-    out=/tmp/out.txt
+    tmpfile=$(mktemp /tmp/pan.XXXXXXXXXX)
 
-    cat $lst/* | sort -n | uniq -d > $out
-    for i in $(cat $out); do
+    cat $lst/* | sort -n | uniq -d > $tmpfile
+    for i in $(cat $tmpfile); do
         if [ ! -d "$i" ]; then
             _con=$(grep "$i" $lst/*)
             for ln in $_con; do
@@ -514,7 +518,7 @@ Con() {
         fi
     done
 
-    rm $out
+    rm $tmpfile
 }
 
 Del() {

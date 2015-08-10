@@ -260,10 +260,10 @@ GrpAdd() {
 
 download() {
     if [[ $1 == git+* ]]; then
-    	_giturl=${1#*+}; shift
-    	if [ ! -d $src/$n-$v ]; then
-	    	git clone $_giturl ${@} $src/$n-$v
-	    fi
+        _giturl=${1#*+}; shift
+        if [ ! -d $src/$n-$v ]; then
+            git clone $_giturl ${@} $src/$n-$v
+        fi
     elif [ "${1%://*}" = "git" ]; then
         if [ ! -d $src/$n-$v ]; then
             git clone $1 $src/$n-$v
@@ -769,10 +769,10 @@ Upd() {
         restore
         unset b
 
-		tmpfile=$(mktemp /tmp/pan.XXXXXXXXXX)
+        tmpfile=$(mktemp /tmp/pan.XXXXXXXXXX)
         list=$(comm -23 <(sort $rn.bak) <(sort $rn))
-		for l in $list; do
-			echo $l >> $tmpfile
+        for l in $list; do
+            echo $l >> $tmpfile
         done
         list=$(tac $tmpfile)
 

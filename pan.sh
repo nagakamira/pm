@@ -261,7 +261,9 @@ GrpAdd() {
 download() {
     if [[ $1 == git+* ]]; then
     	_giturl=${1#*+}; shift
-    	git clone $_giturl ${@} $src/$n-$v
+    	if [ ! -d $src/$n-$v ]; then
+	    	git clone $_giturl ${@} $src/$n-$v
+	    fi
     elif [ "${1%://*}" = "git" ]; then
         if [ ! -d $src/$n-$v ]; then
             git clone $1 $src/$n-$v
@@ -520,8 +522,6 @@ Del() {
     for pn in $args; do
         if [ "${pn%=*}" = "root" ]; then continue; fi
 
-        ign="--ignore-fail-on-non-empty"
-
         if [ -f $root/$inf/$pn ]; then
             . $root/$inf/$pn; export n v
         else
@@ -552,7 +552,7 @@ Del() {
             if [ -L $root/$l ]; then unlink $root/$l
             elif [ -f $root/$l ]; then rm -f $root/$l
             elif [ "$l" = "/" ]; then continue
-            elif [ -d $root/$l ]; then rmdir $ign $root/$l
+            elif [ -d $root/$l ]; then find $root/$l -type d -empty -delete
             fi
         done
 
@@ -769,17 +769,22 @@ Upd() {
         restore
         unset b
 
+		tmpfile=$(mktemp /tmp/pan.XXXXXXXXXX)
         list=$(comm -23 <(sort $rn.bak) <(sort $rn))
+		for l in $list; do
+			echo $l >> $tmpfile
+        done
+        list=$(tac $tmpfile)
 
         for l in $list; do
             if [ -L $l ]; then unlink $l
             elif [ -f $l ]; then rm -f $l
             elif [ "$l" = "/" ]; then continue
-            elif [ -d $l ]; then rm -r $l
+            elif [ -d $l ]; then find $l -type d -empty -delete
             fi
-        done | tac
+        done
 
-        rm $rn.bak
+        rm $rn.bak $tmpfile
 
         if [ -f "$sys/$n" ]; then . $sys/$n
             if type _upd >/dev/null 2>&1; then _upd; fi

@@ -36,6 +36,7 @@ SetPrm() {
     chgrp -R users $1
     chmod -R g+w $1
 }
+
 GetRcs() {
     if [ ! -d $rcs ]; then
         git clone $gitrcs $rcs; SetPrm $rcs
@@ -266,7 +267,17 @@ download() {
         fi
     elif [ "${1%://*}" = "git" ]; then
         if [ ! -d $src/$n-$v ]; then
-            git clone $1 $src/$n-$v
+            _giturl=${1%%#*}; _gitref=${1#*#}
+            gitcmd="git checkout --force --no-track -B PAN ${_gitref##*=}"
+            git clone $_giturl $src/$n-$v
+            pushd $src/$n-$v &>/dev/null
+            if [[ $_gitref != $_giturl ]]; then
+                case ${_gitref%%=*} in
+                    commit|tag|branch) $gitcmd;;
+                    *) echo "${_gitref}: not supported"; exit 1;;
+                esac
+            fi
+            popd &>/dev/null
         fi
     else
         if [[ $1 =~ "::" ]]; then
@@ -326,6 +337,10 @@ _package() {
         done
     fi
 
+    if [ "$EmptyDirs" = true ]; then
+        find . -depth -type d -exec rmdir '{}' + 2>/dev/null
+    fi
+
     fakeroot -i $src/state.$n -- tar -cpJf $bld/arc/$n-$v-$r.$pkgext ./
 }
 
@@ -335,7 +350,7 @@ Bld() {
     GetRcs
 
     for pn in $args; do
-        NoExtract=false; NoStrip=false
+        EmptyDirs=false; NoExtract=false; NoStrip=false
 
         if  [[ -L "$rcs/$pn" && -d "$rcs/$pn" ]]; then continue; fi
 
@@ -352,6 +367,7 @@ Bld() {
         if [ -z "$r" ]; then r=1; fi
 
         for opt in "${o[@]}"; do
+            if [ "$opt" = "emptydirs" ]; then EmptyDirs=true; fi
             if [ "$opt" = "noextract" ]; then NoExtract=true; fi
             if [ "$opt" = "nostrip" ]; then NoStrip=true; fi
         done

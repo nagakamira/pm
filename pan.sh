@@ -337,10 +337,6 @@ _package() {
         done
     fi
 
-    if [ "$EmptyDirs" = true ]; then
-        find . -depth -type d -exec rmdir '{}' + 2>/dev/null
-    fi
-
     fakeroot -i $src/state.$n -- tar -cpJf $bld/arc/$n-$v-$r.$pkgext ./
 }
 
@@ -350,7 +346,7 @@ Bld() {
     GetRcs
 
     for pn in $args; do
-        EmptyDirs=false; NoExtract=false; NoStrip=false
+        NoExtract=false; NoStrip=false
 
         if  [[ -L "$rcs/$pn" && -d "$rcs/$pn" ]]; then continue; fi
 
@@ -367,7 +363,6 @@ Bld() {
         if [ -z "$r" ]; then r=1; fi
 
         for opt in "${o[@]}"; do
-            if [ "$opt" = "emptydirs" ]; then EmptyDirs=true; fi
             if [ "$opt" = "noextract" ]; then NoExtract=true; fi
             if [ "$opt" = "nostrip" ]; then NoStrip=true; fi
         done

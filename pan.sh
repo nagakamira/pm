@@ -756,8 +756,11 @@ Upd() {
         fi
     done
 
-    for pn in $args; do
-        RtDeps $pn; _deps_=($(echo ${deps[@]} | tr ' ' '\n' | sort -u | tr '\n' ' '))
+    unset n
+
+    for _pn in ${ulst[@]}; do
+        . $rcs/$_pn/recipe;
+        RtDeps $n; _deps_=($(echo ${deps[@]} | tr ' ' '\n' | sort -u | tr '\n' ' '))
         for _dep_ in ${_deps_[@]}; do
             if [ ! -f "$root/$inf/$_dep_" ]; then _mdeps_+=($_dep_); fi
         done

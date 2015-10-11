@@ -756,15 +756,15 @@ Upd() {
         fi
     done
 
-	for pn in $args; do
+    for pn in $args; do
         RtDeps $pn; _deps_=($(echo ${deps[@]} | tr ' ' '\n' | sort -u | tr '\n' ' '))
         for _dep_ in ${_deps_[@]}; do
-        	if [ ! -f "$root/$inf/$_dep_" ]; then _mdeps_+=($_dep_); fi
+            if [ ! -f "$root/$inf/$_dep_" ]; then _mdeps_+=($_dep_); fi
         done
     done
 
-	_mdeps_=($(echo ${_mdeps_[@]} | tr ' ' '\n' | sort -u | tr '\n' ' '))
-	args=${_mdeps_[@]}; Add
+    _mdeps_=($(echo ${_mdeps_[@]} | tr ' ' '\n' | sort -u | tr '\n' ' '))
+    args=${_mdeps_[@]}; Add
 
     plst=(${ulst[@]}); GetPkg
 

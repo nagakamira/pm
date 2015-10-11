@@ -734,20 +734,11 @@ Upd() {
             fi
         fi
 
-        RtDeps $pn; deps=($(echo ${deps[@]} | tr ' ' '\n' | sort -u | tr '\n' ' '))
-
-        for _dep_ in ${deps[@]}; do
-        	if [ ! -f "$root/$inf/$_dep_" ]; then _mdeps+=($_dep_); fi
-        done
-
         if [ -f $inf/$n ]; then
             . $inf/$n; v2=$v; r2=$r; v=; r=
         else
             continue
         fi
-
-        # backward compatibility
-        if [ -z "$r2" ]; then r2=1; fi
 
         v=$(echo -e "$v1\n$v2" | sort -V | tail -n1)
         r=$(echo -e "$r1\n$r2" | sort -V | tail -n1)
@@ -765,7 +756,15 @@ Upd() {
         fi
     done
 
-	args=${_mdeps[@]}; Add
+	for pn in $args; do
+        RtDeps $pn; _deps_=($(echo ${deps[@]} | tr ' ' '\n' | sort -u | tr '\n' ' '))
+        for _dep_ in ${_deps_[@]}; do
+        	if [ ! -f "$root/$inf/$_dep_" ]; then _mdeps_+=($_dep_); fi
+        done
+    done
+
+	_mdeps_=($(echo ${_mdeps_[@]} | tr ' ' '\n' | sort -u | tr '\n' ' '))
+	args=${_mdeps_[@]}; Add
 
     plst=(${ulst[@]}); GetPkg
 

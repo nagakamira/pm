@@ -734,6 +734,12 @@ Upd() {
             fi
         fi
 
+        RtDeps $pn; deps=($(echo ${deps[@]} | tr ' ' '\n' | sort -u | tr '\n' ' '))
+
+        for _dep_ in ${deps[@]}; do
+        	if [ ! -f "$root/$inf/$_dep_" ]; then _mdeps+=($_dep_); fi
+        done
+
         if [ -f $inf/$n ]; then
             . $inf/$n; v2=$v; r2=$r; v=; r=
         else
@@ -758,6 +764,8 @@ Upd() {
             fi
         fi
     done
+
+	args=${_mdeps[@]}; Add
 
     plst=(${ulst[@]}); GetPkg
 

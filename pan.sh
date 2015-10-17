@@ -262,10 +262,10 @@ GrpAdd() {
 download() {
     if [[ $1 == git* ]]; then
         if [ ! -d $src/$n-$v ]; then
-        	if [[ $1 == git+* ]]; then
-        		_g=${1#git+}; _giturl=${_g%%#*}
-        	else
-            	_giturl=${1%%#*}
+            if [[ $1 == git+* ]]; then
+                _g=${1#git+}; _giturl=${_g%%#*}
+            else
+                _giturl=${1%%#*}
             fi
             _gitref=${1#*#}
             gitcmd="git checkout --force --no-track -B PAN ${_gitref##*=}"

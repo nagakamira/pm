@@ -260,14 +260,14 @@ GrpAdd() {
 }
 
 download() {
-    if [[ $1 == git+* ]]; then
-        _giturl=${1#*+}; shift
+    if [[ $1 == git* ]]; then
         if [ ! -d $src/$n-$v ]; then
-            git clone $_giturl ${@} $src/$n-$v
-        fi
-    elif [ "${1%://*}" = "git" ]; then
-        if [ ! -d $src/$n-$v ]; then
-            _giturl=${1%%#*}; _gitref=${1#*#}
+        	if [[ $1 == git+* ]]; then
+        		_g=${1#git+}; _giturl=${_g%%#*}
+        	else
+            	_giturl=${1%%#*}
+            fi
+            _gitref=${1#*#}
             gitcmd="git checkout --force --no-track -B PAN ${_gitref##*=}"
             git clone $_giturl $src/$n-$v
             pushd $src/$n-$v &>/dev/null
@@ -293,7 +293,7 @@ download() {
 }
 
 extract() {
-    if [ ! "${1%://*}" = "git" ] && [[ $1 != git+* ]]; then
+    if [[ $1 != git* ]]; then
         if [ "$NoExtract" = false ]; then
             echo "extracting: $file"
             case $file in

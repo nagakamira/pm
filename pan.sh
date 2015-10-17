@@ -268,12 +268,13 @@ download() {
                 _giturl=${1%%#*}
             fi
             _gitref=${1#*#}
-            gitcmd="git checkout --force --no-track -B PAN ${_gitref##*=}"
+            gitcmd="git checkout --force --no-track -B PAN"
             git clone $_giturl $src/$n-$v
             pushd $src/$n-$v &>/dev/null
             if [[ $_gitref != $_giturl ]]; then
                 case ${_gitref%%=*} in
-                    commit|tag|branch) $gitcmd;;
+                    commit|tag) $gitcmd ${_gitref##*=};;
+                    branch) $gitcmd origin/${_gitref##*=};;
                     *) echo "${_gitref}: not supported"; exit 1;;
                 esac
             fi

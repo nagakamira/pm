@@ -220,7 +220,7 @@ Add() {
         . $rcs/$dep/recipe
         if  [[ -L "$rcs/$dep" && -d "$rcs/$dep" ]]; then n=$dep; fi
 
-        echo "installing: $n ($v)"
+        echo "installing: $n ($v-$r)"
         backup
         tar -C $root -xpf $arc/$n-$v-$r.$pkgext
         chmod 777 $root/pkg &>/dev/null
@@ -228,7 +228,7 @@ Add() {
         unset b
 
         if [ ! -d $root/$log ]; then mkdir -p $root/$log; fi
-        echo "[$(date +%Y-%m-%d) $(date +%H:%M)] [ADD] $n ($v)" >> $root/$log/add
+        echo "[$(date +%Y-%m-%d) $(date +%H:%M)] [ADD] $n ($v-$r)" >> $root/$log/add
     done
 
     for dep in ${_deps[@]}; do
@@ -554,7 +554,7 @@ Del() {
         fi
 
         if [ -f "$root/$lst/$n" ]; then
-            echo "removing: $n ($v)"
+            echo "removing: $n ($v-$r)"
             list=$(tac $root/$lst/$n)
         else
             continue
@@ -577,7 +577,7 @@ Del() {
         fi
 
         if [ ! -d $root/$log ]; then mkdir -p $root/$log; fi
-        echo "[$(date +%Y-%m-%d) $(date +%H:%M)] [DEL] $n ($v)" >> $root/$log/del
+        echo "[$(date +%Y-%m-%d) $(date +%H:%M)] [DEL] $n ($v-$r)" >> $root/$log/del
     done
 }
 
@@ -813,7 +813,7 @@ Upd() {
         fi
 
         if [ ! -d $root/$log ]; then mkdir -p $root/$log; fi
-        echo "[$(date +%Y-%m-%d) $(date +%H:%M)] [UPD] $n ($v)" >> $log/upd
+        echo "[$(date +%Y-%m-%d) $(date +%H:%M)] [UPD] $n ($v-$r)" >> $log/upd
     done
 }
 

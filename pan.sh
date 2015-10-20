@@ -323,7 +323,6 @@ _package() {
     echo -e "" >> $pkg/$inf/$n
     printf "%s " "u=(${u[@]})" >> $pkg/$inf/$n
     echo -e "" >> $pkg/$inf/$n
-    find -L ./ | sed 's/.\//\//' | sort > $pkg/$lst/$n
 
     if [ "$NoStrip" = false ]; then
         find . -type f 2>/dev/null | while read binary; do
@@ -338,6 +337,13 @@ _package() {
         done
     fi
 
+    if [ "$NoEmptyDirs" = true ]; then
+        touch $pkg/$lst/$n
+        find . -type d -empty -delete
+    fi
+
+    find -L ./ | sed 's/.\//\//' | sort > $pkg/$lst/$n
+
     fakeroot -i $src/state.$n -- tar -cpJf $bld/arc/$n-$v-$r.$pkgext ./
 }
 
@@ -347,7 +353,7 @@ Bld() {
     GetRcs
 
     for pn in $args; do
-        NoExtract=false; NoStrip=false
+        NoEmptyDirs=false; NoExtract=false; NoStrip=false
 
         if  [[ -L "$rcs/$pn" && -d "$rcs/$pn" ]]; then continue; fi
 
@@ -364,6 +370,7 @@ Bld() {
         if [ -z "$r" ]; then r=1; fi
 
         for opt in "${o[@]}"; do
+            if [ "$opt" = "noemptydirs" ]; then NoEmptyDirs=true; fi
             if [ "$opt" = "noextract" ]; then NoExtract=true; fi
             if [ "$opt" = "nostrip" ]; then NoStrip=true; fi
         done

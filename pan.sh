@@ -525,6 +525,7 @@ Con() {
     cat $lst/* | sort -n | uniq -d > $tmpfile
     for i in $(cat $tmpfile); do
         if [ ! -d "$i" ]; then
+        	if [ ! -f "$i" ]; then continue; fi
             _con=$(grep "$i" $lst/*)
             for ln in $_con; do
                 echo "${ln#$lst/}"

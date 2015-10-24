@@ -342,7 +342,7 @@ _package() {
         find . -type d -empty -delete
     fi
 
-    find -L ./ | sed 's/.\//\//' | sort > $pkg/$lst/$n
+    find ./ | sed 's/.\//\//' | sort > $pkg/$lst/$n
 
     fakeroot -i $src/state.$n -- tar -cpJf $bld/arc/$n-$v-$r.$pkgext ./
 }

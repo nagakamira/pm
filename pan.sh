@@ -125,7 +125,7 @@ RtDeps() {
     if [ ${#n[@]} -ge 2 ]; then
         for i in ${!n[@]}; do
             if [ "${n[$i]}" = "$1" ]; then
-                d=($(declare -f package_${n[$i]} | sed -n 's/d=\(.*\);/\1/p' | tr -d "()" | tr -d "'"))
+                d=($(declare -f package_${n[$i]} | sed -n 's/d=\(.*\);/\1/p' | tr -d "()" | tr -d "'" | tr -d "\""))
             fi
         done
         unset n
@@ -416,7 +416,7 @@ Bld() {
                 n=${n[$i]}; _pwd_=`pwd`
                 pkg=$pkg/$n; mkdir -p $pkg
                 s=$(echo $(declare -f package_$n | sed -n 's/s=\(.*\);/\1/p'))
-                d=($(declare -f package_$n | sed -n 's/d=\(.*\);/\1/p' | tr -d "()" | tr -d "'"))
+                d=($(declare -f package_$n | sed -n 's/d=\(.*\);/\1/p' | tr -d "()" | tr -d "'" | tr -d "\""))
 
                 export -f package_$n; fakeroot -s $src/state.$n package_$n
 
@@ -479,7 +479,7 @@ BldDep() {
 
         if [ ${#n[@]} -ge 2 ]; then
             for i in ${!n[@]}; do
-                _d=($(declare -f package_${n[$i]} | sed -n 's/d=\(.*\);/\1/p' | tr -d "()" | tr -d "'"))
+                _d=($(declare -f package_${n[$i]} | sed -n 's/d=\(.*\);/\1/p' | tr -d "()" | tr -d "'" | tr -d "\""))
                 for dep in ${_d[@]}; do
                     if [ ! -f $inf/$dep ]; then
                         dlst+=($dep)

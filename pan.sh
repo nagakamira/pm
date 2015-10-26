@@ -297,17 +297,12 @@ extract() {
     if [[ $1 != git* ]]; then
         if [ "$NoExtract" = false ]; then
             echo "extracting: $file"
+            local cmd="--strip-components=1"
             case $file in
-                *.tar.bz2) tar -C $src -jxpf $tmp/$file;;
-                *.bz2)     bzip2 -dc $tmp/$file > $src/${file%.*};;
-                *.tar.xz)  tar -C $src -xpf $tmp/$file;;
-                *.tar.gz)  tar -C $src -xpf $tmp/$file;;
-                *.tgz)     tar -C $src -xpf $tmp/$file;;
-                *.tar)     tar -C $src -xpf $tmp/$file;;
-                *.gz)      gunzip -c $tmp/$file > $src/${file%.*};;
-                *.zip)     unzip -d $src $tmp/$file;;
-                *.7z)      7za x $tmp/$file -o$src;;
-                *)         echo "$file: not supported";;
+                *.tar.bz2) tar -C $src/$n-$v -jxpf $tmp/$file $cmd;;
+                *.tar.xz|*.tar.gz|*.tgz|*.tar)  tar -C $src/$n-$v -xpf $tmp/$file $cmd;;
+                *.bz2|*.gz|*.zip) bsdtar -C $src/$n-$v -xpf $tmp/$file $cmd;;
+                *) echo "$file: archive not supported";;
             esac
         fi
     fi
@@ -364,10 +359,7 @@ Bld() {
         fi
 
         _rcs=$rcs; _pkg=$pkg; _pwd=`pwd`
-        mkdir -p $bld/arc $src $tmp
-
-        if [ -z "$p" ]; then p=$n-$v; fi
-        if [ -z "$r" ]; then r=1; fi
+        mkdir -p $bld/arc $src/$n-$v $tmp
 
         for opt in "${o[@]}"; do
             if [ "$opt" = "noemptydirs" ]; then NoEmptyDirs=true; fi
@@ -385,12 +377,10 @@ Bld() {
                 download $u
                 extract $u
             fi
-        else
-            p=./
         fi
 
         echo "building: $n ($v)"
-        if [ -d "$src/$p" ]; then cd $src/$p; else cd $src; fi
+        if [ -d "$src/$n-$v" ]; then cd $src/$n-$v; else cd $src; fi
 
         tmpfile=$(mktemp /tmp/$n.XXXXXXXXXX)
 
@@ -440,7 +430,7 @@ Bld() {
         fi
 
         rm -rf $_pkg $src $tmpfile
-        rcs=$_rcs; pkg=$_pkg; p=; o=(); u=(); unset -f build
+        rcs=$_rcs; pkg=$_pkg; o=(); u=(); unset -f build
     done
 }
 

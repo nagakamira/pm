@@ -50,22 +50,22 @@ PkgLst() {
         fi
 
         if  [[ -L "$rcs/$_pkg" && -d "$rcs/$_pkg" ]]; then
-            unset n v r s d u b p o; continue
+            unset n v r g d u b o; continue
         fi
 
         if [ ${#n[@]} -ge 2 ]; then
             for i in ${!n[@]}; do
                 s=$(echo $(declare -f package_${n[$i]} | sed -n 's/s=\(.*\);/\1/p'))
-                if [ -z "$s" ]; then continue; fi
-                if [ "$s" = "$gn" ]; then plst+=(${n[$i]}); fi
-                if [ -n "$s" ]; then _plst+=(${n[$i]}); fi
+                if [ -z "$g" ]; then continue; fi
+                if [ "$g" = "$gn" ]; then plst+=(${n[$i]}); fi
+                if [ -n "$g" ]; then _plst+=(${n[$i]}); fi
             done
         else
-            if [ -z "$s" ]; then unset n v s d u b p o; continue; fi
-            if [ "$s" = "$gn" ]; then plst+=($n); fi
-            if [ -n "$s" ]; then _plst+=($n); fi
+            if [ -z "$g" ]; then unset n v g d u b o; continue; fi
+            if [ "$g" = "$gn" ]; then plst+=($n); fi
+            if [ -n "$g" ]; then _plst+=($n); fi
         fi
-        unset n v r s d u b p o
+        unset n v r g d u b o
     done
 
     unset _pkg
@@ -114,7 +114,7 @@ GetPkg() {
         echo "missing archive(s): ${_pkg_[@]}"; exit 1
     fi
 
-    unset _pkg n v r s d u b p o
+    unset _pkg n v r g d u b o
 }
 
 RtDeps() {
@@ -146,7 +146,7 @@ GrpDep() {
     for _pkg_ in ${plst[@]}; do
         RtDeps $_pkg_
     done
-    unset _pkg_ n v r s d u b p o
+    unset _pkg_ n v r g d u b o
  
     deps=($(echo ${deps[@]} | tr ' ' '\n' | sort -u | tr '\n' ' '))
 }
@@ -314,7 +314,7 @@ _package() {
     echo "n=$n" >> $pkg/$inf/$n
     echo "v=$v" >> $pkg/$inf/$n
     echo "r=$r" >> $pkg/$inf/$n
-    echo "s=$s" >> $pkg/$inf/$n
+    echo "g=$g" >> $pkg/$inf/$n
     printf "%s " "d=(${d[@]})" >> $pkg/$inf/$n
     echo -e "" >> $pkg/$inf/$n
     printf "%s " "u=(${u[@]})" >> $pkg/$inf/$n
@@ -591,7 +591,7 @@ GrpDel() {
                 . $root/$inf/$_pkg
             fi
  
-            if [ "$s" = "$gn" ]; then plst+=($n); fi
+            if [ "$g" = "$gn" ]; then plst+=($n); fi
         done
 
         plst=($(for i in ${plst[@]}; do echo $i; done | sort -u))
@@ -646,12 +646,12 @@ GrpLst() {
         if [ ${#n[@]} -ge 2 ]; then
             for i in ${!n[@]}; do
                 s=$(echo $(declare -f package_${n[$i]} | sed -n 's/s=\(.*\);/\1/p'))
-                glst+=($s)
+                glst+=($g)
             done
         else
-            glst+=($s)
+            glst+=($g)
         fi
-        unset n s
+        unset n g
     done
 
     glst=($(echo ${glst[@]} | tr ' ' '\n' | sort -u | tr '\n' ' '))
@@ -665,8 +665,8 @@ Inf() {
         echo "program: $n"
         echo "version: $v"
         echo "release: $r"
-        if [ -n "$s" ]; then
-            echo "section: $s"
+        if [ -n "$g" ]; then
+            echo "section: $g"
         fi
         if [ "${#d[@]}" -ge "1" ]; then
             echo "depends: ${d[@]}"

@@ -1,7 +1,7 @@
 n=grep
 v=2.21
 r=1
-s=base
+g=base
 d=(glibc pcre texinfo)
 u=ftp://ftp.gnu.org/gnu/$n/$n-$v.tar.xz
 

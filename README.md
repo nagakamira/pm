@@ -27,7 +27,7 @@ To build a package you need to create the /pkg/rcs directory so that it contains
     n=grep
     v=2.21
     r=1
-    s=base
+    g=base
     d=('glibc' 'pcre' 'texinfo')
     u=ftp://ftp.gnu.org/gnu/$n/$n-$v.tar.xz
 
@@ -42,17 +42,17 @@ To build a package you need to create the /pkg/rcs directory so that it contains
         rm -f $pkg/usr/share/info/dir
     }
 
-The source information has letters that stands for: (n)ame, (v)ersion, (r)elease, (s)ection, (d)ependency and (u)rl. The order is not important, and if there is no package dependency, then d can be omitted. Pan does automatically cd to ~/build/src/grep-2.21. If you want to cd $src(~/build/src) directory, then add "p=./", which stands for (p)ath. $pkg defaults to ~/build/pkg/grep-2.21. The configuration file is stored at /etc/pan.conf, and can be customized if needed. Now, to build the grep package, simply run:
+The source information has letters that stands for: (n)ame, (v)ersion, (r)elease, (g)roup, (d)ependency and (u)rl. The order is not important, and if there is no package dependency, then d can be omitted. Pan does automatically cd to ~/build/src/grep-2.21. $pkg defaults to ~/build/pkg/grep-2.21. The configuration file is stored at /etc/pan.conf, and can be customized if needed. Now, to build the grep package, simply run:
 
     pan -b grep
 
-Pan will build and compress the package into /pkg/arc/ directory as grep-2.21.pkg.tar.xz. If you have more than one recipes that have the same section, ie base, you can simply build them altogether by running:
+Pan will build and compress the package into ~/build/arc/ directory as grep-2.21.pkg.tar.xz. If you have more than one recipes that have the same group, ie base, you can simply build them altogether by running:
 
     pan -B base
 
 <h3>Managing package(s)</h3>
 
-Now that you have successfully built the grep package, you might want to install it by typing:
+Now that you have successfully built the grep package, you might want to install it by copying ~/build/arc/grep-2.21.pkg.tar.xz to /pkg/arc directory and run:
 
     pan -a grep
 

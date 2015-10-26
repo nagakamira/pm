@@ -261,25 +261,23 @@ GrpAdd() {
 
 download() {
     if [[ $1 == git* ]]; then
-        if [ ! -d $src/$n-$v ]; then
-            if [[ $1 == git+* ]]; then
-                _g=${1#git+}; _giturl=${_g%%#*}
-            else
-                _giturl=${1%%#*}
-            fi
-            _gitref=${1#*#}
-            gitcmd="git checkout --force --no-track -B PAN"
-            git clone $_giturl $src/$n-$v
-            pushd $src/$n-$v &>/dev/null
-            if [[ $_gitref != $_giturl ]]; then
-                case ${_gitref%%=*} in
-                    commit|tag) $gitcmd ${_gitref##*=};;
-                    branch) $gitcmd origin/${_gitref##*=};;
-                    *) echo "${_gitref}: not supported"; exit 1;;
-                esac
-            fi
-            popd &>/dev/null
+        if [[ $1 == git+* ]]; then
+            _g=${1#git+}; _giturl=${_g%%#*}
+        else
+            _giturl=${1%%#*}
         fi
+        _gitref=${1#*#}
+        gitcmd="git checkout --force --no-track -B PAN"
+        git clone $_giturl $src/$n-$v
+        pushd $src/$n-$v &>/dev/null
+        if [[ $_gitref != $_giturl ]]; then
+            case ${_gitref%%=*} in
+                commit|tag) $gitcmd ${_gitref##*=};;
+                branch) $gitcmd origin/${_gitref##*=};;
+                *) echo "${_gitref}: not supported"; exit 1;;
+            esac
+        fi
+        popd &>/dev/null
     else
         if [[ $1 =~ "::" ]]; then
             file=${1%::*}; url=${1#*::}

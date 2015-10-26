@@ -55,7 +55,7 @@ PkgLst() {
 
         if [ ${#n[@]} -ge 2 ]; then
             for i in ${!n[@]}; do
-                s=$(echo $(declare -f package_${n[$i]} | sed -n 's/s=\(.*\);/\1/p'))
+                g=$(echo $(declare -f package_${n[$i]} | sed -n 's/g=\(.*\);/\1/p'))
                 if [ -z "$g" ]; then continue; fi
                 if [ "$g" = "$gn" ]; then plst+=(${n[$i]}); fi
                 if [ -n "$g" ]; then _plst+=(${n[$i]}); fi
@@ -406,7 +406,7 @@ Bld() {
             for i in ${!n[@]}; do
                 n=${n[$i]}; _pwd_=`pwd`
                 pkg=$pkg/$n; mkdir -p $pkg
-                s=$(echo $(declare -f package_$n | sed -n 's/s=\(.*\);/\1/p'))
+                g=$(echo $(declare -f package_$n | sed -n 's/g=\(.*\);/\1/p'))
                 d=($(declare -f package_$n | sed -n 's/d=\(.*\);/\1/p' | tr -d "()" | tr -d "'" | tr -d "\""))
 
                 export -f package_$n; fakeroot -s $src/state.$n package_$n
@@ -645,7 +645,7 @@ GrpLst() {
 
         if [ ${#n[@]} -ge 2 ]; then
             for i in ${!n[@]}; do
-                s=$(echo $(declare -f package_${n[$i]} | sed -n 's/s=\(.*\);/\1/p'))
+                g=$(echo $(declare -f package_${n[$i]} | sed -n 's/g=\(.*\);/\1/p'))
                 glst+=($g)
             done
         else

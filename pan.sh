@@ -299,9 +299,12 @@ extract() {
             echo "extracting: $file"
             local cmd="--strip-components=1"
             case $file in
-                *.tar.bz2) tar -C $src/$n-$v -jxpf $tmp/$file $cmd;;
-                *.tar.xz|*.tar.gz|*.tgz|*.tar)  tar -C $src/$n-$v -xpf $tmp/$file $cmd;;
-                *.bz2|*.gz|*.zip) bsdtar -C $src/$n-$v -xpf $tmp/$file $cmd;;
+                *.tar.bz2)
+                    tar -C $src/$n-$v -jxpf $tmp/$file $cmd;;
+                *.tar.xz|*.tar.gz|*.tgz|*.tar)
+                    tar -C $src/$n-$v -xpf $tmp/$file $cmd;;
+                *.bz2|*.gz|*.zip)
+                    bsdtar -C $src/$n-$v -xpf $tmp/$file $cmd;;
                 *) echo "$file: archive not supported";;
             esac
         fi

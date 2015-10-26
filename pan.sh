@@ -333,8 +333,9 @@ _package() {
         done
     fi
 
+    touch $pkg/$lst/$n
+
     if [ "$NoEmptyDirs" = true ]; then
-        touch $pkg/$lst/$n
         find . -type d -empty -delete
     fi
 

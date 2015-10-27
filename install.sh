@@ -11,7 +11,7 @@ for i in $@; do
 done
 
 if [ ! -d $root/pkg/arc ]; then
-	mkdir -p $root/pkg/arc
+    mkdir -p $root/pkg/arc
 fi
 chmod 777 $root/pkg/{,arc}
 

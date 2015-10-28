@@ -127,6 +127,8 @@ run_package() {
 }
 
 check_integrity() {
+    if [[ -z $s ]]; then return 1; fi
+
     local match=1 bits=(1 224 256 384 512)
 
     for bit in ${bits[@]}; do

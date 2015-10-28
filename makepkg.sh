@@ -126,6 +126,23 @@ run_package() {
     run_function_safe "$pkgfunc"
 }
 
+check_integrity() {
+    local match=1 bits=(1 224 256 384 512)
+
+    for bit in ${bits[@]}; do
+        shasum=$(sha${bit}sum $tmp/$file | cut -d' ' -f1)
+        if [[ " ${s[*]} " =~ " $shasum " ]]; then
+            match=0
+        fi
+    done
+
+    echo "checking: $file"
+    if [[ $match == 1 ]]; then
+        echo ">>> integrity mismatch"
+        exit 1
+    fi
+}
+
 download() {
     if [[ $1 == git* ]]; then
         if [[ $1 == git+* ]]; then
@@ -155,6 +172,8 @@ download() {
             echo "downloading: $file"
             curl -L -o $tmp/$file $url
         fi
+
+        check_integrity
     fi
 }
 

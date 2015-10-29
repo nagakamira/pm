@@ -206,9 +206,16 @@ create_archive() {
     echo "n=$n" >> $pkg/$inf/$n
     echo "v=$v" >> $pkg/$inf/$n
     echo "r=$r" >> $pkg/$inf/$n
-    echo "g=$g" >> $pkg/$inf/$n
-    echo $(printf "%s " "d=(${d[@]})") >> $pkg/$inf/$n
-    echo $(printf "%s " "u=(${u[@]})") >> $pkg/$inf/$n
+
+    if [[ -n $g ]]; then
+        echo "g=$g" >> $pkg/$inf/$n
+    fi
+    if [[ -n $d ]]; then
+        echo $(printf "%s " "d=(${d[@]})") >> $pkg/$inf/$n
+    fi
+    if [[ -n $u ]]; then
+        echo $(printf "%s " "u=(${u[@]})") >> $pkg/$inf/$n
+    fi
 
     if assert_option "strip" "y"; then
         find . -type f 2>/dev/null | while read binary; do

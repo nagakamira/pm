@@ -393,7 +393,7 @@ Del() {
             if [ -L $root/$l ]; then unlink $root/$l
             elif [ -f $root/$l ]; then rm -f $root/$l
             elif [ "$l" = "/" ]; then continue
-            elif [ -d $root/$l ]; then find $root/$l -type d -empty -delete
+            elif [ -d $root/$l ]; then find $root/$l -maxdepth 0 -type d -empty -delete
             fi
         done
 
@@ -631,7 +631,7 @@ Upd() {
             if [ -L $l ]; then unlink $l
             elif [ -f $l ]; then rm -f $l
             elif [ "$l" = "/" ]; then continue
-            elif [ -d $l ]; then find $l -type d -empty -delete
+            elif [ -d $l ]; then find $l -maxdepth 0 -type d -empty -delete
             fi
         done
 

@@ -26,10 +26,10 @@ source_safe() {
 }
 
 get_recipes() {
-    if [ ! -d $rcs ]; then
-        git clone $gitrcs $rcs
-        chgrp -R users $rcs
-        chmod -R g+w $rcs
+    if [ ! -d $rcsdir ]; then
+        git clone $rcsrepo $rcsdir
+        chgrp -R users $rcsdir
+        chmod -R g+w $rcsdir
     fi
 }
 
@@ -103,7 +103,7 @@ run_function() {
         unset MAKEFLAGS
     fi
 
-    cd $src
+    cd $src_nv
 
     export CFLAGS CXXFLAGS LDFLAGS MAKEFLAGS CHOST
     # save our shell options so pkgfunc() can't override what we need
@@ -132,7 +132,7 @@ check_integrity() {
     local match=1 bits=(1 224 256 384 512)
 
     for bit in ${bits[@]}; do
-        shasum=$(sha${bit}sum $tmp/$file | cut -d' ' -f1)
+        shasum=$(sha${bit}sum $tmpdir/$file | cut -d' ' -f1)
         if [[ " ${s[*]} " =~ " $shasum " ]]; then
             match=0
         fi
@@ -146,17 +146,18 @@ check_integrity() {
 }
 
 download() {
-    if [[ $1 == git* ]]; then
-        if [[ $1 == git+* ]]; then
-            _g=${1#git+}; _giturl=${_g%%#*}
+    local su=$1
+    if [[ $su == git* ]]; then
+        if [[ $su == git+* ]]; then
+            gitplus=${su#git+}; giturl=${gitplus%%#*}
         else
-            _giturl=${1%%#*}
+            giturl=${su%%#*}
         fi
-        _gitref=${1#*#}
+        _gitref=${su#*#}
         gitcmd="git checkout --force --no-track -B PAN"
-        git clone $_giturl $src
-        pushd $src &>/dev/null
-        if [[ $_gitref != $_giturl ]]; then
+        git clone $giturl $src_nv
+        pushd $src_nv &>/dev/null
+        if [[ $_gitref != $giturl ]]; then
             case ${_gitref%%=*} in
                 commit|tag) $gitcmd ${_gitref##*=};;
                 branch) $gitcmd origin/${_gitref##*=};;
@@ -165,14 +166,14 @@ download() {
         fi
         popd &>/dev/null
     else
-        if [[ $1 =~ "::" ]]; then
-            file=${1%::*}; url=${1#*::}
+        if [[ $su =~ "::" ]]; then
+            file=${su%::*}; url=${su#*::}
         else
-            file=$(basename $1); url=$1
+            file=$(basename $su); url=$su
         fi
-        if [ ! -f $tmp/$file ]; then
+        if [ ! -f $tmpdir/$file ]; then
             echo "downloading: $file"
-            curl -L -o $tmp/$file $url
+            curl -L -o $tmpdir/$file $url
         fi
 
         check_integrity
@@ -180,41 +181,44 @@ download() {
 }
 
 extract() {
-    if assert_option "extract" "n"; then continue; fi
+    local su=$1
+    if assert_option "extract" "n"; then
+        cp -a $tmpdir/$file $srcdir; continue
+    fi
 
     if assert_option "extract" "y"; then
-        if [[ $1 != git* ]]; then
+        if [[ $su != git* ]]; then
             echo "extracting: $file"
             local cmd="--strip-components=1"
             case $file in
                 *.tar.bz2)
-                    tar -C $src -jxpf $tmp/$file $cmd;;
+                    tar -C $src_nv -jxpf $tmpdir/$file $cmd;;
                 *.tar.xz|*.tar.gz|*.tgz|*.tar)
-                    tar -C $src -xpf $tmp/$file $cmd;;
+                    tar -C $src_nv -xpf $tmpdir/$file $cmd;;
                 *.bz2|*.gz|*.zip)
-                    bsdtar -C $src -xpf $tmp/$file $cmd;;
-                *) echo "$file: archive not supported";;
+                    bsdtar -C $src_nv -xpf $tmpdir/$file $cmd;;
+                *) cp -a $tmpdir/$file $srcdir;;
             esac
         fi
     fi
 }
 
 create_archive() {
-    cd $pkg
+    cd $pkgdir
 
-    mkdir -p $pkg/{$inf,$lst}
-    echo "n=$n" >> $pkg/$inf/$n
-    echo "v=$v" >> $pkg/$inf/$n
-    echo "r=$r" >> $pkg/$inf/$n
+    mkdir -p $pkgdir/{$infdir,$lstdir}
+    echo "n=$n" >> $pkgdir/$infdir/$n
+    echo "v=$v" >> $pkgdir/$infdir/$n
+    echo "r=$r" >> $pkgdir/$infdir/$n
 
     if [[ -n $g ]]; then
-        echo "g=$g" >> $pkg/$inf/$n
+        echo "g=$g" >> $pkgdir/$infdir/$n
     fi
     if [[ -n $d ]]; then
-        echo $(printf "%s " "d=(${d[@]})") >> $pkg/$inf/$n
+        echo $(printf "%s " "d=(${d[@]})") >> $pkgdir/$infdir/$n
     fi
     if [[ -n $u ]]; then
-        echo $(printf "%s " "u=(${u[@]})") >> $pkg/$inf/$n
+        echo $(printf "%s " "u=(${u[@]})") >> $pkgdir/$infdir/$n
     fi
 
     if assert_option "strip" "y"; then
@@ -230,15 +234,15 @@ create_archive() {
         done
     fi
 
-    touch $pkg/$lst/$n
+    touch $pkgdir/$lstdir/$n
 
     if assert_option "emptydirs" "n"; then
         find . -type d -empty -delete
     fi
 
-    find ./ | sed 's/.\//\//' | sort > $pkg/$lst/$n
+    find ./ | sed 's/.\//\//' | sort > $pkgdir/$lstdir/$n
 
-    tar -cpJf $bld/arc/$n-$v-$r.$pkgext ./
+    tar -cpJf $blddir/arc/$n-$v-$r.$pkgext ./
 }
 
 for i in $@; do
@@ -247,46 +251,46 @@ for i in $@; do
     esac
 done
 
-unset n v r g d m b o u s src pkg rcs
+unset n ver rel grp dep mkd bak opt url sha srcdir pkgdir rcsdir
 
 source_safe /etc/pan.conf
 
 get_recipes
 
-pn=$1; source_safe $rcs/$pn/recipe
+pn=$1; source_safe $rcsdir/$pn/recipe
 
-if  [[ -L "$rcs/$pn" && -d "$rcs/$pn" ]]; then
+if  [[ -L "$rcsdir/$pn" && -d "$rcsdir/$pn" ]]; then
     echo "$pn is a split package of $n. Try building $n."; exit 0
 fi
 
-mkdir -p $bld/arc $src/$n-$v $tmp
+_pkgdir=$pkgdir; src_nv=$srcdir/$n-$v; rcsdir=$rcsdir/$n
 
-_pkg=$pkg; _src=$src; src=$src/$n-$v; rcs=$rcs/$n
+mkdir -p $blddir/arc $src_nv $tmpdir
 
 if (( INFAKEROOT )); then
     if [ ${#n[@]} -ge 2 ]; then
         for pn in ${n[@]}; do
             n=$pn
-            pkg=$pkg/$n
-            mkdir -p $pkg
+            pkgdir=$pkgdir/$n
+            mkdir -p $pkgdir
             run_package $pn
-            if [ -f "$rcs/system.$n" ]; then
-                mkdir -p $pkg/$sys
-                cp $rcs/system.$n $pkg/$sys/$n
+            if [ -f "$rcsdir/system.$n" ]; then
+                mkdir -p $pkgdir/$sysdir
+                cp $rcsdir/system.$n $pkgdir/$sysdir/$n
             fi
             create_archive
-            pkg=$_pkg
+            pkgdir=$_pkgdir
         done
     else
-        pkg=$pkg/$n
-        mkdir -p $pkg
+        pkgdir=$pkgdir/$n
+        mkdir -p $pkgdir
         run_package
-        if [ -f "$rcs/system" ]; then
-            mkdir -p $pkg/$sys; cp $rcs/system $pkg/$sys/$n
+        if [ -f "$rcsdir/system" ]; then
+            mkdir -p $pkgdir/$sysdir; cp $rcsdir/system $pkgdir/$sysdir/$n
         fi
         create_archive
     fi
-    rm -rf $_pkg $_src
+    rm -rf $_pkgdir $srcdir
 else
     if [ -n "$u" ]; then
         for src_url in "${u[@]}"; do
@@ -296,7 +300,7 @@ else
     fi
 
     echo "building: $n ($v)"
-    if [ -d "$src/$n-$v" ]; then cd $src/$n-$v; else cd $src; fi
+    if [ -d "$src_nv" ]; then cd $src_nv; else cd $srcdir; fi
 
     if type build >/dev/null 2>&1; then
         run_function_safe "build"

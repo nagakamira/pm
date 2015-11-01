@@ -318,6 +318,8 @@ GrpAdd() {
 
 Bld() {
     local rc_pn
+    set -e
+
     for rc_pn in $args; do
         makepkg $rc_pn
     done
@@ -325,6 +327,7 @@ Bld() {
 
 GrpBld() {
     local rc_pn
+    set -e
 
     for gn in $args; do PkgLst; done
 

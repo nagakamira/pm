@@ -191,6 +191,7 @@ extract() {
         if [[ $su != git* ]]; then
             echo "extracting: $file"
             if [ ${#src[@]} -eq 1 ]; then cmd="--strip-components=1"; fi
+            if assert_option "stripcomponents" "n"; then unset cmd; fi
             case $file in
                 *.tar.bz2)
                     tar -C $src_pkg_ver -jxpf $tmpdir/$file $cmd;;

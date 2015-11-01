@@ -235,10 +235,6 @@ Add() {
         if [ "${rc_pn}" = "reinstall" ]; then continue; fi
         if [ "${rc_pn}" = "skipdep" ]; then continue; fi
 
-        if [[ -f "$args" && "$(basename $args)" == *.$ext ]]; then
-            echo $args; exit 1
-        fi
-
         if [ -f $rcsdir/$rc_pn/recipe ]; then
             . $rcsdir/$rc_pn/recipe
         else

@@ -579,14 +579,14 @@ Upd() {
                 . $rcsdir/$rc_pn/recipe
                 pkg=$rc_pn; ver1=$ver; rel1=$rel; unset ver rel
             else
-                echo "$rc_pn: recipe file not found"
+                echo "$rc_pn: recipe file not found"; exit 1
             fi
         else
             if [ -f $rcsdir/$rc_pn/recipe ]; then
                 . $rcsdir/$rc_pn/recipe
                 ver1=$ver; rel1=$rel; unset ver rel
             else
-                echo "$rc_pn: recipe file not found"
+                echo "$rc_pn: recipe file not found"; exit 1
             fi
         fi
 

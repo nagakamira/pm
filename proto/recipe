@@ -1,0 +1,19 @@
+pkg=
+ver=
+rel=
+grp=
+dep=()
+mkd=()
+bak=()
+opt=()
+src=()
+sha=()
+
+build() {
+    ./configure --prefix=/usr
+    make
+}
+
+package() {
+    make DESTDIR=$pkgdir install
+}

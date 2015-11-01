@@ -1,0 +1,19 @@
+post_add() {
+    # do something here
+}
+
+pre_del() {
+    # do something here
+}
+
+post_del() {
+    # do something here
+}
+
+pre_upd() {
+    # do something here
+}
+
+post_upd() {
+    # do something here
+}

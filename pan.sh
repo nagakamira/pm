@@ -24,11 +24,13 @@ grpsys=false
 updrcs=true
 reinst=false
 skipdep=false
+INFAKECHROOT=0
 
 if [[ ${EUID} -eq 0 ]]; then
     arcdir=$root_arcdir; rcsdir=$root_rcsdir
 else
     arcdir=$user_arcdir; rcsdir=$user_rcsdir
+    INFAKECHROOT=1
 fi
 
 AsRoot() {
@@ -52,7 +54,7 @@ PkgLst() {
         fi
 
         if  [[ -L "$rcsdir/$rc_pn" && -d "$rcsdir/$rc_pn" ]]; then
-                unset pkg ver rel grp dep mkd bak opt src sha; continue
+            unset pkg ver rel grp dep mkd bak opt src sha; continue
         fi
 
         if [ ${#n[@]} -ge 2 ]; then
@@ -243,8 +245,9 @@ Add() {
         if  [[ -L "$rcsdir/$i" && -d "$rcsdir/$i" ]]; then pkg=$i; fi
         export pkg ver
         if [ -f "$rootdir/$sysdir/$pkg" ]; then . $rootdir/$sysdir/$pkg
-            if [ "$rootdir" != "/" ]; then chroot $rootdir /bin/sh -c \
-                ". $sysdir/$pkg; if type post_add >/dev/null 2>&1; then post_add; fi"
+            if (( INFAKECHROOT )); then cmd=fakechroot; fi
+            if [ "$rootdir" != "/" ]; then $cmd chroot $rootdir /bin/sh -c \
+                ". $sysdir/$pkg; if type post_add >/dev/null 2>&1; then post_add; fi" >/dev/null 2>&1
             else
                 if type post_add >/dev/null 2>&1; then post_add; fi
             fi
@@ -384,8 +387,9 @@ Del() {
                 . $rootdir/$sysdir/$pkg
                 if type post_del >/dev/null 2>&1; then export -f post_del; fi
                 if type post_add >/dev/null 2>&1; then export -f post_add; fi
-                if [ "$rootdir" != "/" ]; then chroot $rootdir /bin/sh -c \
-                    ". $sysdir/$pkg; if type pre_del >/dev/null 2>&1; then pre_del; fi"
+                if (( INFAKECHROOT )); then cmd=fakechroot; fi
+                if [ "$rootdir" != "/" ]; then $cmd chroot $rootdir /bin/sh -c \
+                    ". $sysdir/$pkg; if type pre_del >/dev/null 2>&1; then pre_del; fi" >/dev/null 2>&1
                 else
                     if type pre_del >/dev/null 2>&1; then pre_del; fi
                 fi
@@ -408,8 +412,9 @@ Del() {
         done
 
         if [ "$grpsys" = false ]; then
-            if [ "$rootdir" != "/" ]; then chroot $rootdir /bin/sh -c \
-                "if type post_del >/dev/null 2>&1; then post_del; fi"
+            if (( INFAKECHROOT )); then cmd=fakechroot; fi
+            if [ "$rootdir" != "/" ]; then $cmd chroot $rootdir /bin/sh -c \
+                "if type post_del >/dev/null 2>&1; then post_del; fi" >/dev/null 2>&1
             else
                 if type post_del >/dev/null 2>&1; then post_del; fi
             fi
@@ -445,8 +450,9 @@ GrpDel() {
             . $rootdir/$sysdir/$rc_pn; . $rootdir/$infdir/$rc_pn; export pkg ver
             cp $rootdir/$infdir/$rc_pn $rootdir/$infdir/$rc_pn.inf
             cp $rootdir/$sysdir/$rc_pn $rootdir/$sysdir/$rc_pn.sys
-            if [ "$rootdir" != "/" ]; then chroot $rootdir /bin/sh -c \
-                ". $sysdir/$rc_pn; if type pre_del >/dev/null 2>&1; then pre_del; fi"
+            if (( INFAKECHROOT )); then cmd=fakechroot; fi
+            if [ "$rootdir" != "/" ]; then $cmd chroot $rootdir /bin/sh -c \
+                ". $sysdir/$rc_pn; if type pre_del >/dev/null 2>&1; then pre_del; fi" >/dev/null 2>&1
             else
                 if type pre_del >/dev/null 2>&1; then pre_del; fi
             fi
@@ -458,8 +464,9 @@ GrpDel() {
     for rc_pn in ${plst[@]}; do
         if [ -f "$rootdir/$sysdir/$rc_pn.sys" ]; then
             . $rootdir/$sysdir/$rc_pn.sys; . $rootdir/$infdir/$rc_pn.inf; export pkg ver
-            if [ "$rootdir" != "/" ]; then chroot $rootdir /bin/sh -c \
-                ". $sysdir/$rc_pn.sys; if type post_del >/dev/null 2>&1; then post_del; fi"
+            if (( INFAKECHROOT )); then cmd=fakechroot; fi
+            if [ "$rootdir" != "/" ]; then $cmd chroot $rootdir /bin/sh -c \
+                ". $sysdir/$rc_pn.sys; if type post_del >/dev/null 2>&1; then post_del; fi" >/dev/null 2>&1
             else
                 if type post_del >/dev/null 2>&1; then post_del; fi
             fi

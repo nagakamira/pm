@@ -35,11 +35,11 @@ check_option() {
     local needle=$1; shift
     local options=$@
 
-    for opt in ${options[@]}; do
-        if [[ $opt = "$needle" ]]; then
+    for o in ${options[@]}; do
+        if [[ $o = "$needle" ]]; then
             # enabled
             return 0
-        elif [[ $opt = "!$needle" ]]; then
+        elif [[ $o = "!$needle" ]]; then
             # disabled
             return 1
         fi
@@ -94,16 +94,16 @@ run_function() {
     local pkgfunc="$1"
 
     if assert_option "buildflags" "n"; then
-        unset CFLAGS CXXFLAGS LDFLAGS
+        unset CPPFLAGS CFLAGS CXXFLAGS LDFLAGS
     fi
 
     if assert_option "makeflags" "n"; then
         unset MAKEFLAGS
     fi
 
-    if [ -d "$src_pkg_ver" ]; then cd $src_pkg_ver; else cd $srcdir; fi
+    cd $src_pkg_ver
 
-    export CFLAGS CXXFLAGS LDFLAGS MAKEFLAGS CHOST
+    export CPPFLAGS CFLAGS CXXFLAGS LDFLAGS MAKEFLAGS CHOST
     # save our shell options so pkgfunc() can't override what we need
     local shellopts=$(shopt -p)
 
@@ -179,18 +179,18 @@ download() {
 }
 
 extract() {
-    local su=$1
+    local cdm su=$1
 
     check_integrity
 
     if assert_option "extract" "n"; then
-        cp -a $tmpdir/$file $srcdir; continue
+        cp -a $tmpdir/$file $src_pkg_ver; continue
     fi
 
     if assert_option "extract" "y"; then
         if [[ $su != git* ]]; then
             echo "extracting: $file"
-            local cmd="--strip-components=1"
+            if [ ${#src[@]} -eq 1 ]; then cmd="--strip-components=1"; fi
             case $file in
                 *.tar.bz2)
                     tar -C $src_pkg_ver -jxpf $tmpdir/$file $cmd;;
@@ -198,7 +198,7 @@ extract() {
                     tar -C $src_pkg_ver -xpf $tmpdir/$file $cmd;;
                 *.bz2|*.gz|*.zip)
                     bsdtar -C $src_pkg_ver -xpf $tmpdir/$file $cmd;;
-                *) cp -a $tmpdir/$file $srcdir;;
+                *) cp -a $tmpdir/$file $src_pkg_ver;;
             esac
         fi
     fi
@@ -274,6 +274,8 @@ else
 fi
 
 _pkgdir=$pkgdir; src_pkg_ver=$srcdir/$pkg-$ver
+
+if [ ${#src[@]} -ge 2 ]; then src_pkg_ver=$srcdir; fi
 
 mkdir -p $arcdir $src_pkg_ver $tmpdir
 

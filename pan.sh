@@ -781,7 +781,7 @@ for i in $@; do
             echo "  -U, --update-all (groupname)    update all the packages"
             echo "options:"
             echo "  reinstall                       force add a package"
-            echo "  rootdir=<directory>                change root directory"
+            echo "  rootdir=<directory>             change root directory"
             echo "  skipdep                         skip dependency resolution"
             exit 1;;
         reinstall) reinst=true;;

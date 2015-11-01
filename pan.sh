@@ -571,6 +571,8 @@ Upd() {
         fi
     fi
 
+    if [ -z ${args[@]} ]; then return 0; fi
+
     for rc_pn in $args; do
         if  [[ -L "$rcsdir/$rc_pn" && -d "$rcsdir/$rc_pn" ]]; then
             if [ -f $rcsdir/$rc_pn/recipe ]; then

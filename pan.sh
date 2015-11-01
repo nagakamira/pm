@@ -180,14 +180,64 @@ restore() {
     fi
 }
 
+add_pkg_ext() {
+    AsRoot
+    tempdir=$(mktemp -d)
+
+    tar -C $tempdir -xpf $rc_pn_ext
+    . $tempdir/$infdir/*
+
+    echo "installing: $pkg ($ver-$rel)"
+    backup
+    tar -C $rootdir -xpf $pkg-$ver-$rel.$ext
+    restore
+    unset bak
+
+    if [ ! -d $rootdir/$logdir ]; then mkdir -p $rootdir/$logdir; fi
+    echo "[$(date +%Y-%m-%d) $(date +%H:%M)] [ADD] $pkg ($ver-$rel)" >> $rootdir/$logdir/pan.log
+
+    export pkg ver
+    if [ -f "$rootdir/$sysdir/$pkg" ]; then . $rootdir/$sysdir/$pkg
+        if (( INFAKECHROOT )); then cmd=fakechroot; fi
+        if [ "$rootdir" != "/" ]; then $cmd chroot $rootdir /bin/sh -c \
+            ". $sysdir/$pkg; if type post_add >/dev/null 2>&1; then post_add; fi" >/dev/null 2>&1
+        else
+            if type post_add >/dev/null 2>&1; then post_add; fi
+        fi
+    fi
+
+    rm -r $tempdir
+}
+
 Add() {
     local rc_pn i deps
+
+    for rc_pn in $args; do
+        if [ "${rc_pn%=*}" = "rootdir" ]; then continue; fi
+        if [ "${rc_pn}" = "reinstall" ]; then continue; fi
+        if [ "${rc_pn}" = "skipdep" ]; then continue; fi
+
+        if [[ -f "$rc_pn" && "$(basename $rc_pn)" == *.$ext ]]; then
+            pushd $(dirname $rc_pn) >/dev/null 2>&1
+            rc_pn_ext=`pwd`/$(basename $rc_pn)
+            popd >/dev/null 2>&1
+            add_pkg_ext
+        else
+            _args+=($rc_pn)
+        fi
+    done
+
+    args=${_args[@]}
     AsRoot; GetRcs
 
     for rc_pn in $args; do
         if [ "${rc_pn%=*}" = "rootdir" ]; then continue; fi
         if [ "${rc_pn}" = "reinstall" ]; then continue; fi
         if [ "${rc_pn}" = "skipdep" ]; then continue; fi
+
+        if [[ -f "$args" && "$(basename $args)" == *.$ext ]]; then
+            echo $args; exit 1
+        fi
 
         if [ -f $rcsdir/$rc_pn/recipe ]; then
             . $rcsdir/$rc_pn/recipe
@@ -232,7 +282,6 @@ Add() {
         echo "installing: $pkg ($ver-$rel)"
         backup
         tar -C $rootdir -xpf $arcdir/$pkg-$ver-$rel.$ext
-        chmod 777 $rootdir/pkg &>/dev/null
         restore
         unset bak
 
@@ -644,7 +693,6 @@ Upd() {
 
         backup
         tar -C $rootdir -xpf $arcdir/$pkg-$ver-$rel.$ext
-        chmod 777 $rootdir/pkg &>/dev/null
         restore
         unset bak
 

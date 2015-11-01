@@ -53,13 +53,13 @@ Pan will first try to download the source arhive grep-2.21.tar.xz and save it to
 
 <h3>Managing package(s)</h3>
 
-Now that you have successfully built the grep package, you might want to install it. If you copy ~/build/arc/grep-2.21.pkg.tar.xz to /var/cache/pan/arc directory, then you will be able to install grep into the system, otherwise you need to specify root directory when installing as a regular user:
-
-    pan -a grep rootdir=my/install/path
-
-As root, you can simply run:
+Now that you have successfully built the grep package, you might want to install it. If you copy ~/build/arc/grep-2.21.pkg.tar.xz to /var/cache/pan/arc directory, then you will be able to install grep without specifying the package archive name. As root, you can simply run:
 
     pan -a grep
+
+If you want to install a local package, you need to explicitly tell pan the package archive name:
+
+    pan -a ~/build/arc/grep-2.21.pkg.tar.xz
 
 If you want to install the group of packages you've built, then type:
 

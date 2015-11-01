@@ -289,7 +289,7 @@ if (( INFAKEROOT )); then
                 cp $rcsdir/system.$pkg $pkgdir/$sysdir/$pkg
             fi
             create_archive
-            pkgdir=$_pkgdir
+            pkgdir=$_pkgdir; unset grp dep bak opt
         done
     else
         pkgdir=$pkgdir/$pkg

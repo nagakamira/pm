@@ -22,15 +22,15 @@ The GNU/Linux community is driven by a strong and cohesive force that brings for
 
 <h3>Building package(s)</h3>
 
-To build a package you need to create the /pkg/rcs directory so that it contains the recipe file. If there is no /pkg/rcs directory, Pan will automatically clone recipes from https://github.com/gnurama/recipes and populate /pkg/rcs with subdirectories containing recipes. But if you want to do it yourself, just create /pkg/rcs/grep directory and save the recipe file as "recipe" inside it. /pkg/rcs/grep/recipe should look like this:
+To build a package you need to create a recipe file or organize the ~/build/rcs directory so that it has sub directories containing recipe files. If there is no ~/build/rcs directory, pan will clone recipes from repository if it is enabled in the configuration file(/etc/pan.conf), and populate ~/build/rcs with subdirectories containing recipes. If you want to create a recipe for a program, just create ~/build/rcs/grep directory and save the recipe file as "recipe" inside it. ~/build/rcs/grep/recipe should look like this:
 
-    n=grep
-    v=2.21
-    r=1
-    g=base
-    d=('glibc' 'pcre' 'texinfo')
-    u=(ftp://ftp.gnu.org/gnu/$n/$n-$v.tar.xz)
-    s=(5244a11c00dee8e7e5e714b9aaa053ac6cbfa27e104abee20d3c778e4bb0e5de)
+    pkg=grep
+    ver=2.21
+    rel=1
+    grp=base
+    dep=(glibc pcre texinfo)
+    src=(ftp://ftp.gnu.org/gnu/grep/grep-$ver.tar.xz)
+    sha=(5244a11c00dee8e7e5e714b9aaa053ac6cbfa27e104abee20d3c778e4bb0e5de)
 
     build() {
         ./configure --prefix=/usr
@@ -38,22 +38,26 @@ To build a package you need to create the /pkg/rcs directory so that it contains
     }
 
     package() {
-        make DESTDIR=$pkg install
+        make DESTDIR=$pkgdir install
 
-        rm -f $pkg/usr/share/info/dir
+        rm -f $pkgdir/usr/share/info/dir
     }
 
-The source information has letters that stands for: (n)ame, (v)ersion, (r)elease, (g)roup, (d)ependency, (u)rl and (s)hasum. The order is not important, and if there is no package dependency, then d can be omitted. g and s are optional as well. Pan does automatically cd to ~/build/src/grep-2.21. $pkg defaults to ~/build/pkg/grep-2.21. The configuration file is stored at /etc/pan.conf, and can be customized if needed. Now, to build the grep package, simply run:
+The package variables has three letters that stands for: package, version, release, group, depends, source and sha2. The order is not important, and if there is no package dependency, then dep can be omitted. grp and sha are optional as well. Pan does automatically change directory to $srcdir/$pkg-$ver, ie ~/build/src/grep-2.21, when building a package. $pkgdir defaults to ~/build/pkg/grep-2.21. The configuration file is stored at /etc/pan.conf and build directories can be customized. In order to build the grep package, simply run:
 
     pan -b grep
 
-Pan will build and compress the package into ~/build/arc/ directory as grep-2.21.pkg.tar.xz. If you have more than one recipes that have the same group, ie base, you can simply build them altogether by running:
+Pan will first try to download the source arhive grep-2.21.tar.xz and save it to ~/build/tmp directory if it isn't there already, and then build the package. When it is finnished building, it will compress the package into ~/build/arc/ directory as grep-2.21.pkg.tar.xz. If you have more than one recipes that have the same group, ie base, you can simply build them altogether by running:
 
     pan -B base
 
 <h3>Managing package(s)</h3>
 
-Now that you have successfully built the grep package, you might want to install it by copying ~/build/arc/grep-2.21.pkg.tar.xz to /pkg/arc directory and run:
+Now that you have successfully built the grep package, you might want to install it. If you copy ~/build/arc/grep-2.21.pkg.tar.xz to /var/cache/pan/arc directory, then you will be able to install grep into the system, otherwise you need to specify root directory when installing as a regular user:
+
+    pan -a grep rootdir=my/install/path
+
+As root, you can simply run:
 
     pan -a grep
 
@@ -81,7 +85,7 @@ Updating all the packages works like this:
 
     pan -U
 
-If you want to update the /pkg/rcs without updating package(s), run:
+If you want to update the recipe directory without updating package(s), run:
 
     pan -u
 

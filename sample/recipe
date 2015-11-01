@@ -1,4 +1,4 @@
-app=grep
+pkg=grep
 ver=2.21
 rel=1
 grp=base
@@ -6,7 +6,7 @@ dep=(glibc pcre texinfo)
 mkd=()
 bak=()
 opt=()
-url=(ftp://ftp.gnu.org/gnu/$n/$n-$v.tar.xz)
+src=(ftp://ftp.gnu.org/gnu/grep/grep-$ver.tar.xz)
 sha=(5244a11c00dee8e7e5e714b9aaa053ac6cbfa27e104abee20d3c778e4bb0e5de)
 
 build() {

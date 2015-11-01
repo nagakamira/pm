@@ -25,6 +25,12 @@ updrcs=true
 reinst=false
 skipdep=false
 
+if [[ ${EUID} -eq 0 ]]; then
+    arcdir=$root_arcdir; rcsdir=$root_rcsdir
+else
+    arcdir=$user_arcdir; rcsdir=$user_rcsdir
+fi
+
 AsRoot() {
     if [[ ${EUID} -ne 0 ]] && [ "$rootdir" = "/" ]; then
         echo "This script must be run as root."
@@ -32,14 +38,9 @@ AsRoot() {
     fi
 }
 
-SetPrm() {
-    chgrp -R users $1
-    chmod -R g+w $1
-}
-
 GetRcs() {
     if [ ! -d $rcsdir ]; then
-        git clone $rcsrepo $rcsdir; SetPrm $rcsdir
+        git clone $rcsrepo $rcsdir
     fi
 }
 
@@ -51,22 +52,24 @@ PkgLst() {
         fi
 
         if  [[ -L "$rcsdir/$rc_pn" && -d "$rcsdir/$rc_pn" ]]; then
-            unset n v r g d u b o; continue
+                unset pkg ver rel grp dep mkd bak opt src sha; continue
         fi
 
         if [ ${#n[@]} -ge 2 ]; then
             for i in ${!n[@]}; do
-                g=$(echo $(declare -f package_${n[$i]} | sed -n 's/g=\(.*\);/\1/p'))
-                if [ -z "$g" ]; then continue; fi
-                if [ "$g" = "$gn" ]; then plst+=(${n[$i]}); fi
-                if [ -n "$g" ]; then _plst+=(${n[$i]}); fi
+                grp=$(echo $(declare -f package_${n[$i]} | sed -n 's/grp=\(.*\);/\1/p'))
+                if [ -z "$grp" ]; then continue; fi
+                if [ "$grp" = "$gn" ]; then plst+=(${n[$i]}); fi
+                if [ -n "$grp" ]; then _plst+=(${n[$i]}); fi
             done
         else
-            if [ -z "$g" ]; then unset n v g d u b o; continue; fi
-            if [ "$g" = "$gn" ]; then plst+=($n); fi
-            if [ -n "$g" ]; then _plst+=($n); fi
+            if [ -z "$grp" ]; then
+                unset pkg ver rel grp dep mkd bak opt src sha; continue
+            fi
+            if [ "$grp" = "$gn" ]; then plst+=($pkg); fi
+            if [ -n "$grp" ]; then _plst+=($pkg); fi
         fi
-        unset n v r g d u b o
+        unset pkg ver rel grp dep mkd bak opt src sha
     done
 
     plst=($(for i in ${plst[@]}; do echo $i; done | sort -u))
@@ -97,16 +100,16 @@ reduceupds() {
 }
 
 GetPkg() {
-    local rc_pn rc_pn_missing
+    local rc_pn
     for rc_pn in ${plst[@]}; do
         . $rcsdir/$rc_pn/recipe
-        if  [[ -L "$rcsdir/$rc_pn" && -d "$rcsdir/$rc_pn" ]]; then n=$rc_pn; fi
-        if [ ! -f $arcdir/$n-$v-$r.$pkgext ]; then
-            echo "downloading: $n-$v-$r.$pkgext"
-            curl -f -L -o $arcdir/$n-$v-$r.$pkgext $getpkg/$n-$v-$r.$pkgext
-            if [ ! -f $arcdir/$n-$v-$r.$pkgext ]; then
-                echo "$n: archive file not found"
-                rc_pn_missing+=($n)
+        if  [[ -L "$rcsdir/$rc_pn" && -d "$rcsdir/$rc_pn" ]]; then pkg=$rc_pn; fi
+        if [ ! -f $arcdir/$pkg-$ver-$rel.$ext ]; then
+            echo "downloading: $pkg-$ver-$rel.$ext"
+            curl -f -L -o $arcdir/$pkg-$ver-$rel.$ext $pkgrepo/$pkg-$ver-$rel.$ext
+            if [ ! -f $arcdir/$pkg-$ver-$rel.$ext ]; then
+                echo "$pkg: archive file not found"
+                rc_pn_missing+=($pkg)
             fi
         fi
     done
@@ -115,11 +118,11 @@ GetPkg() {
         echo "missing archive(s): ${rc_pn_missing[@]}"; exit 1
     fi
 
-    unset n v r g d u b o
+    unset pkg ver rel grp dep mkd bak opt src sha
 }
 
-RtDeps() {
-    local rc_pn=$1 dep
+GetDep() {
+    local rc_pn=$1 i
     if [ -f $rcsdir/$rc_pn/recipe ]; then
         . $rcsdir/$rc_pn/recipe
     fi
@@ -127,19 +130,19 @@ RtDeps() {
     if [ ${#n[@]} -ge 2 ]; then
         for i in ${!n[@]}; do
             if [ "${n[$i]}" = "$rc_pn" ]; then
-                d=($(declare -f package_${n[$i]} | sed -n 's/d=\(.*\);/\1/p' | tr -d "()" | tr -d "'" | tr -d "\""))
+                dep=($(declare -f package_${n[$i]} | sed -n 's/dep=\(.*\);/\1/p' | tr -d "()" | tr -d "'" | tr -d "\""))
             fi
         done
         unset n
     fi
 
     deps=(${deps[@]} $1)
-    for dep in ${d[@]}; do
-        if [[ " ${deps[*]} " =~ " $dep " ]]; then
+    for i in ${dep[@]}; do
+        if [[ " ${deps[*]} " =~ " $i " ]]; then
             continue
         else
-            deps=(${deps[@]} $dep)
-            RtDeps $dep
+            deps=(${deps[@]} $i)
+            GetDep $i
         fi
     done
 }
@@ -147,16 +150,16 @@ RtDeps() {
 GrpDep() {
     local rc_pn
     for rc_pn in ${plst[@]}; do
-        RtDeps $rc_pn
+        GetDep $rc_pn
     done
-    unset n v r g d u b o
+    unset pkg ver rel grp dep mkd bak opt src sha
  
     deps=($(echo ${deps[@]} | tr ' ' '\n' | sort -u | tr '\n' ' '))
 }
 
 backup() {
-    if [ -n "$b" ]; then
-        for _f in ${b[@]}; do
+    if [ -n "$bak" ]; then
+        for _f in ${bak[@]}; do
             if [ -f $rootdir/$_f ]; then
                 cp $rootdir/$_f $rootdir/${_f}.bak
             fi
@@ -165,8 +168,8 @@ backup() {
 }
 
 restore() {
-    if [ -n "$b" ]; then
-        for _f in ${b[@]}; do
+    if [ -n "$bak" ]; then
+        for _f in ${bak[@]}; do
             if [ -f $rootdir/${_f}.bak ]; then
                 cp $rootdir/$_f $rootdir/${_f}.new
                 mv $rootdir/${_f}.bak $rootdir/$_f
@@ -176,7 +179,7 @@ restore() {
 }
 
 Add() {
-    local rc_pn dep deps
+    local rc_pn i deps
     AsRoot; GetRcs
 
     for rc_pn in $args; do
@@ -190,26 +193,26 @@ Add() {
             echo "$rc_pn: recipe file not found"; exit 1
         fi
         alst+=($rc_pn)
-        if [ "$skipdep" = true ]; then deps+=($rc_pn); else RtDeps $rc_pn; fi
+        if [ "$skipdep" = true ]; then deps+=($rc_pn); else GetDep $rc_pn; fi
     done
 
     deps=($(echo ${deps[@]} | tr ' ' '\n' | sort -u | tr '\n' ' '))
 
-    for dep in ${deps[@]}; do
-        if [ ! -f $rcsdir/$dep/recipe ]; then
-            missing_deps+=($dep); echo "$dep: recipe file not found"
+    for i in ${deps[@]}; do
+        if [ ! -f $rcsdir/$i/recipe ]; then
+            missing_deps+=($i); echo "$i: recipe file not found"
         else
-            if [ -f "$rootdir/$infdir/$dep" ]; then
+            if [ -f "$rootdir/$infdir/$i" ]; then
                 for pn in ${alst[@]}; do
-                    if [ "$dep" = "$rc_pn" ] && [ "$reinst" = true ]; then
-                        _deps+=($dep)
+                    if [ "$i" = "$pn" ] && [ "$reinst" = true ]; then
+                        _deps+=($i)
                     else
                         continue
                     fi
                 done
                 continue
             else
-               _deps+=($dep)
+               _deps+=($i)
             fi
         fi
     done
@@ -220,33 +223,35 @@ Add() {
 
     plst=(${_deps[@]}); GetPkg
 
-    for dep in ${_deps[@]}; do
-        . $rcsdir/$dep/recipe
-        if  [[ -L "$rcsdir/$dep" && -d "$rcsdir/$dep" ]]; then n=$dep; fi
+    for i in ${_deps[@]}; do
+        . $rcsdir/$i/recipe
+        if  [[ -L "$rcsdir/$i" && -d "$rcsdir/$i" ]]; then pkg=$i; fi
 
-        echo "installing: $n ($v-$r)"
+        echo "installing: $pkg ($ver-$rel)"
         backup
-        tar -C $rootdir -xpf $arcdir/$n-$v-$r.$pkgext
+        tar -C $rootdir -xpf $arcdir/$pkg-$ver-$rel.$ext
         chmod 777 $rootdir/pkg &>/dev/null
         restore
-        unset b
+        unset bak
 
         if [ ! -d $rootdir/$logdir ]; then mkdir -p $rootdir/$logdir; fi
-        echo "[$(date +%Y-%m-%d) $(date +%H:%M)] [ADD] $n ($v-$r)" >> $rootdir/$logdir/add
+        echo "[$(date +%Y-%m-%d) $(date +%H:%M)] [ADD] $pkg ($ver-$rel)" >> $rootdir/$logdir/pan.log
     done
 
-    for dep in ${_deps[@]}; do
-        . $rcsdir/$dep/recipe
-        if  [[ -L "$rcsdir/$dep" && -d "$rcsdir/$dep" ]]; then n=$dep; fi
-        export n v
-        if [ -f "$rootdir/$sysdir/$n" ]; then . $rootdir/$sysdir/$n
+    for i in ${_deps[@]}; do
+        . $rcsdir/$i/recipe
+        if  [[ -L "$rcsdir/$i" && -d "$rcsdir/$i" ]]; then pkg=$i; fi
+        export pkg ver
+        if [ -f "$rootdir/$sysdir/$pkg" ]; then . $rootdir/$sysdir/$pkg
             if [ "$rootdir" != "/" ]; then chroot $rootdir /bin/sh -c \
-                ". $sysdir/$n; if type post_add >/dev/null 2>&1; then post_add; fi"
+                ". $sysdir/$pkg; if type post_add >/dev/null 2>&1; then post_add; fi"
             else
                 if type post_add >/dev/null 2>&1; then post_add; fi
             fi
         fi
     done
+
+    $rootdir/ldconfig >/dev/null 2>&1
 }
 
 GrpAdd() {
@@ -304,35 +309,35 @@ BldDep() {
 
         if [ ${#n[@]} -ge 2 ]; then
             for i in ${!n[@]}; do
-                _d=($(declare -f package_${n[$i]} | sed -n 's/d=\(.*\);/\1/p' | tr -d "()" | tr -d "'" | tr -d "\""))
-                for dep in ${_d[@]}; do
-                    if [ ! -f $infdir/$dep ]; then
-                        dlst+=($dep)
+                _dep=($(declare -f package_${n[$i]} | sed -n 's/dep=\(.*\);/\1/p' | tr -d "()" | tr -d "'" | tr -d "\""))
+                for i in ${_dep[@]}; do
+                    if [ ! -f $infdir/$i ]; then
+                        dlst+=($i)
                     fi
                 done
             done
             if [ "${#dlst[@]}" -ge "1" ]; then
-                deps+=(${dlst[@]}); dlst=
+                deps+=(${dlst[@]}); unset dlst
             fi
-        elif [ -n "$d" ]; then
-            for dep in ${d[@]}; do
-                if [ ! -f $infdir/$dep ]; then
-                    dlst+=($dep)
+        elif [ -n "$dep" ]; then
+            for i in ${dep[@]}; do
+                if [ ! -f $infdir/$i ]; then
+                    dlst+=($i)
                 fi
             done
             if [ "${#dlst[@]}" -ge "1" ]; then
-                deps+=(${dlst[@]}); dlst=
+                deps+=(${dlst[@]}); unset dlst
             fi
         fi
 
-        if [ -n "$m" ]; then
-            for dep in ${m[@]}; do
-                if [ ! -f $infdir/$dep ]; then
-                    mlst+=($dep)
+        if [ -n "$mkd" ]; then
+            for i in ${mkd[@]}; do
+                if [ ! -f $infdir/$i ]; then
+                    mlst+=($i)
                 fi
             done
             if [ "${#mlst[@]}" -ge "1" ]; then
-                deps+=(${mlst[@]}); mlst=
+                deps+=(${mlst[@]}); unset mlst
             fi
         fi
     done
@@ -369,27 +374,27 @@ Del() {
         if [ "${pn%=*}" = "rootdir" ]; then continue; fi
 
         if [ -f $rootdir/$infdir/$rc_pn ]; then
-            . $rootdir/$infdir/$rc_pn; export n v
+            . $rootdir/$infdir/$rc_pn; export pkg ver
         else
             echo "$rc_pn: info file not found"; exit 1
         fi
 
         if [ "$grpsys" = false ]; then
-            if [ -f "$rootdir/$sysdir/$n" ]; then
-                . $rootdir/$sysdir/$n
+            if [ -f "$rootdir/$sysdir/$pkg" ]; then
+                . $rootdir/$sysdir/$pkg
                 if type post_del >/dev/null 2>&1; then export -f post_del; fi
                 if type post_add >/dev/null 2>&1; then export -f post_add; fi
                 if [ "$rootdir" != "/" ]; then chroot $rootdir /bin/sh -c \
-                    ". $sysdir/$n; if type pre_del >/dev/null 2>&1; then pre_del; fi"
+                    ". $sysdir/$pkg; if type pre_del >/dev/null 2>&1; then pre_del; fi"
                 else
                     if type pre_del >/dev/null 2>&1; then pre_del; fi
                 fi
             fi
         fi
 
-        if [ -f "$rootdir/$lstdir/$n" ]; then
-            echo "removing: $n ($v-$r)"
-            list=$(tac $rootdir/$lstdir/$n)
+        if [ -f "$rootdir/$lstdir/$pkg" ]; then
+            echo "removing: $pkg ($ver-$rel)"
+            list=$(tac $rootdir/$lstdir/$pkg)
         else
             continue
         fi
@@ -411,8 +416,10 @@ Del() {
         fi
 
         if [ ! -d $rootdir/$logdir ]; then mkdir -p $rootdir/$logdir; fi
-        echo "[$(date +%Y-%m-%d) $(date +%H:%M)] [DEL] $n ($v-$r)" >> $rootdir/$logdir/del
+        echo "[$(date +%Y-%m-%d) $(date +%H:%M)] [DEL] $pkg ($ver-$rel)" >> $rootdir/$logdir/pan.log
     done
+
+    $rootdir/ldconfig >/dev/null 2>&1
 }
 
 GrpDel() {
@@ -427,7 +434,7 @@ GrpDel() {
                 . $rootdir/$infdir/$rc_pn
             fi
  
-            if [ "$g" = "$gn" ]; then plst+=($n); fi
+            if [ "$grp" = "$gn" ]; then plst+=($pkg); fi
         done
 
         plst=($(for i in ${plst[@]}; do echo $i; done | sort -u))
@@ -435,7 +442,7 @@ GrpDel() {
 
     for rc_pn in ${plst[@]}; do
         if [ -f "$rootdir/$sysdir/$rc_pn" ]; then
-            . $rootdir/$sysdir/$rc_pn; . $rootdir/$infdir/$rc_pn; export n v
+            . $rootdir/$sysdir/$rc_pn; . $rootdir/$infdir/$rc_pn; export pkg ver
             cp $rootdir/$infdir/$rc_pn $rootdir/$infdir/$rc_pn.inf
             cp $rootdir/$sysdir/$rc_pn $rootdir/$sysdir/$rc_pn.sys
             if [ "$rootdir" != "/" ]; then chroot $rootdir /bin/sh -c \
@@ -450,7 +457,7 @@ GrpDel() {
 
     for rc_pn in ${plst[@]}; do
         if [ -f "$rootdir/$sysdir/$rc_pn.sys" ]; then
-            . $rootdir/$sysdir/$rc_pn.sys; . $rootdir/$infdir/$rc_pn.inf; export n v
+            . $rootdir/$sysdir/$rc_pn.sys; . $rootdir/$infdir/$rc_pn.inf; export pkg ver
             if [ "$rootdir" != "/" ]; then chroot $rootdir /bin/sh -c \
                 ". $sysdir/$rc_pn.sys; if type post_del >/dev/null 2>&1; then post_del; fi"
             else
@@ -477,18 +484,18 @@ GrpLst() {
         fi
 
         if  [[ -L "$rcsdir/$rc_pn" && -d "$rcsdir/$rc_pn" ]]; then
-            unset n s; continue
+            unset pkg grp; continue
         fi
 
         if [ ${#n[@]} -ge 2 ]; then
             for i in ${!n[@]}; do
-                g=$(echo $(declare -f package_${n[$i]} | sed -n 's/g=\(.*\);/\1/p'))
-                glst+=($g)
+                grp=$(echo $(declare -f package_${n[$i]} | sed -n 's/grp=\(.*\);/\1/p'))
+                glst+=($grp)
             done
         else
-            glst+=($g)
+            glst+=($grp)
         fi
-        unset n g
+        unset pkg grp
     done
 
     glst=($(echo ${glst[@]} | tr ' ' '\n' | sort -u | tr '\n' ' '))
@@ -499,24 +506,24 @@ Inf() {
     if [ -f $infdir/$pn ]; then
         . $infdir/$pn
 
-        echo "program: $n"
-        echo "version: $v"
-        echo "release: $r"
-        if [ -n "$g" ]; then
-            echo "section: $g"
+        echo "package: $pkg"
+        echo "version: $ver"
+        echo "release: $rel"
+        if [ -n "$grp" ]; then
+            echo "section: $grp"
         fi
-        if [ "${#d[@]}" -ge "1" ]; then
-            echo "depends: ${d[@]}"
+        if [ "${#dep[@]}" -ge "1" ]; then
+            echo "depends: ${dep[@]}"
         fi
-        if [ -n "$u" ]; then
-            if [ "${#u[@]}" -gt "1" ]; then
-                for _u in ${u[@]}; do
-                    if [[ $_u =~ "::" ]]; then _u=${_u#*::}; fi
-                    echo "archive: $_u"
+        if [ -n "$src" ]; then
+            if [ "${#src[@]}" -gt "1" ]; then
+                for src_url in ${src[@]}; do
+                    if [[ $src_url =~ "::" ]]; then src_url=${src_url#*::}; fi
+                    echo "sources: $src_url"
                 done
             else
-                if [[ $u =~ "::" ]]; then u=${u#*::}; fi
-                echo "archive: $u"
+                if [[ $src =~ "::" ]]; then src=${src#*::}; fi
+                echo "sources: $src"
             fi
         fi
     else
@@ -551,7 +558,7 @@ Upd() {
     local rc_pn deps
     if [ "$updrcs" = true ]; then
         if [ -d $rcsdir ]; then
-            cd $rcsdir; git pull origin master; SetPrm $rcsdir
+            cd $rcsdir; git pull origin master
         else
             GetRcs
         fi
@@ -560,47 +567,50 @@ Upd() {
     for rc_pn in $args; do
         if  [[ -L "$rcsdir/$rc_pn" && -d "$rcsdir/$rc_pn" ]]; then
             if [ -f $rcsdir/$rc_pn/recipe ]; then
-                . $rcsdir/$rc_pn/recipe; n=$rc_pn; v1=$v; r1=$r; v=; r=
+                . $rcsdir/$rc_pn/recipe
+                pkg=$rc_pn; ver1=$ver; rel1=$rel; unset ver rel
             else
                 echo "$rc_pn: recipe file not found"
             fi
         else
             if [ -f $rcsdir/$rc_pn/recipe ]; then
-                . $rcsdir/$rc_pn/recipe; v1=$v; r1=$r; v=; r=
+                . $rcsdir/$rc_pn/recipe
+                ver1=$ver; rel1=$rel; unset ver rel
             else
                 echo "$rc_pn: recipe file not found"
             fi
         fi
 
-        if [ -f $infdir/$n ]; then
-            . $infdir/$n; v2=$v; r2=$r; v=; r=
+        if [ -f $infdir/$pkg ]; then
+            . $infdir/$pkg
+            ver2=$ver; rel2=$rel; unset ver rel
         else
             continue
         fi
 
-        v=$(echo -e "$v1\n$v2" | sort -V | tail -n1)
-        r=$(echo -e "$r1\n$r2" | sort -V | tail -n1)
+        ver=$(echo -e "$ver1\n$ver2" | sort -V | tail -n1)
+        rel=$(echo -e "$rel1\n$rel2" | sort -V | tail -n1)
 
-        if [ "$v1" != "$v2" ]; then
-            if [ "$v1" = "$v" ]; then
-                ulst+=($n)
+        if [ "$ver1" != "$ver2" ]; then
+            if [ "$ver1" = "$ver" ]; then
+                ulst+=($pkg)
             fi
-        elif [ "$v1" = "$v2" ]; then
-            if [ "$r1" != "$r2" ]; then
-                if [ "$r1" = "$r" ]; then
-                    ulst+=($n)
+        elif [ "$ver1" = "$ver2" ]; then
+            if [ "$rel1" != "$rel2" ]; then
+                if [ "$rel1" = "$rel" ]; then
+                    ulst+=($pkg)
                 fi
             fi
         fi
     done
 
-    unset n
+    unset pkg
 
     for rc_pn in ${ulst[@]}; do
         . $rcsdir/$rc_pn/recipe;
-        RtDeps $n; deps=($(echo ${deps[@]} | tr ' ' '\n' | sort -u | tr '\n' ' '))
-        for dep in ${deps[@]}; do
-            if [ ! -f "$rootdir/$infdir/$dep" ]; then missing deps+=($dep); fi
+        GetDep $pkg; deps=($(echo ${deps[@]} | tr ' ' '\n' | sort -u | tr '\n' ' '))
+        for i in ${deps[@]}; do
+            if [ ! -f "$rootdir/$infdir/$i" ]; then missing_deps+=($i); fi
         done
     done
 
@@ -610,23 +620,24 @@ Upd() {
     plst=(${ulst[@]}); GetPkg
 
     for rc_pn in ${ulst[@]}; do
-        . $infdir/$rc_pn; _v=$v; _r=$r
+        . $infdir/$rc_pn
+        _ver=$ver; _rel=$rel; unset ver rel
         . $rcsdir/$rc_pn/recipe
-        if  [[ -L "$rcsdir/$rc_pn" && -d "$rcsdir/$rc_pn" ]]; then n=$rc_pn; fi
+        if  [[ -L "$rcsdir/$rc_pn" && -d "$rcsdir/$rc_pn" ]]; then pkg=$rc_pn; fi
 
-        echo "updating: $n ($_v-$_r -> $v-$r)"
+        echo "updating: $pkg ($_ver-$_rel -> $ver-$rel)"
 
-        if [ -f "$sysdir/$n" ]; then . $sysdir/$n
+        if [ -f "$sysdir/$pkg" ]; then . $sysdir/$pkg
             if type pre_upd >/dev/null 2>&1; then pre_upd; fi
         fi
 
-        rn=$lstdir/$n; cp $rn $rn.bak
+        rn=$lstdir/$pkg; cp $rn $rn.bak
 
         backup
-        tar -C $rootdir -xpf $arcdir/$n-$v-$r.$pkgext
+        tar -C $rootdir -xpf $arcdir/$pkg-$ver-$rel.$ext
         chmod 777 $rootdir/pkg &>/dev/null
         restore
-        unset b
+        unset bak
 
         tmpfile=$(mktemp /tmp/pan.XXXXXXXXXX)
         list=$(comm -23 <(sort $rn.bak) <(sort $rn))
@@ -645,19 +656,21 @@ Upd() {
 
         rm $rn.bak $tmpfile
 
-        if [ -f "$sysdir/$n" ]; then . $sysdir/$n
+        if [ -f "$sysdir/$pkg" ]; then . $sysdir/$pkg
             if type post_upd >/dev/null 2>&1; then post_upd; fi
         fi
 
         if [ ! -d $rootdir/$logdir ]; then mkdir -p $rootdir/$logdir; fi
-        echo "[$(date +%Y-%m-%d) $(date +%H:%M)] [UPD] $n ($v-$r)" >> $logdir/upd
+        echo "[$(date +%Y-%m-%d) $(date +%H:%M)] [UPD] $pkg ($ver-$rel)" >> $logdir/pan.log
     done
+
+    $rootdir/ldconfig >/dev/null 2>&1
 }
 
 GrpUpd() {
     local rc_pn
     if [ -d $rcsdir ]; then
-        cd $rcsdir; git pull origin master; SetPrm $rcsdir
+        cd $rcsdir; git pull origin master
     else
         GetRcs
     fi
@@ -675,19 +688,19 @@ GrpUpd() {
                     plst+=(${n[$i]})
                 done
             else
-                plst+=($n)
+                plst+=($pkg)
             fi
         done
         _ulst=($(for i in ${plst[@]}; do echo $i; done | sort -u))
     fi
 
     if [ -n "$skipupd" ]; then
-        plst=(); _plst=(); deps=()
+        unset plst _plst deps
         for gn in ${skipupd[@]}; do PkgLst; done
         GrpDep; slst=(${plst[@]}); reduceupds; _ulst=(${__slst[@]})
     fi
 
-    plst=(); _plst=()
+    unset plst _plst
     updrcs=false; args=${_ulst[@]}; Upd
 }
 
@@ -719,8 +732,7 @@ for i in $@; do
             echo "  skipdep                         skip dependency resolution"
             exit 1;;
         reinstall) reinst=true;;
-        rootdir=*)
-            rootdir=${i#*=};;
+        rootdir=*) rootdir=${i#*=};;
         skipdep) skipdep=true;;
         -a|--add) _Add=true;;
         -A|--grp-add) _GrpAdd=true;;

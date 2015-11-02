@@ -189,20 +189,25 @@ extract() {
 
     if assert_option "extract" "y"; then
         if [[ $su != git* ]]; then
-            echo "extracting: $file"
+            e_msg="extracting: $file"
+            c_msg="copying: $file -> $src_pkg_ver"
             if [ ${#src[@]} -eq 1 ]; then cmd="--strip-components=1"; fi
             if assert_option "stripcomponents" "n"; then unset cmd; fi
             case $file in
                 *.tar.bz2)
+                    echo $e_msg
                     tar -C $src_pkg_ver -jxpf $tmpdir/$file $cmd;;
                 *.tar.xz|*.tar.gz|*.tgz|*.tar)
+                    echo $e_msg
                     tar -C $src_pkg_ver -xpf $tmpdir/$file $cmd;;
                 *.bz2|*.zip)
+                    echo $e_msg
                     bsdtar -C $src_pkg_ver -xpf $tmpdir/$file $cmd;;
                 *.gz)
+                    echo $e_msg
                     gunzip -c $tmpdir/$file > $src_pkg_ver/${file%.*};;
                 *)
-                    cp -a $tmpdir/$file $src_pkg_ver;;
+                    echo $c_msg; cp -a $tmpdir/$file $src_pkg_ver;;
             esac
         fi
     fi
@@ -280,6 +285,8 @@ fi
 _pkgdir=$pkgdir; src_pkg_ver=$srcdir/$pkg-$ver
 
 if [ ${#src[@]} -ge 2 ]; then src_pkg_ver=$srcdir; fi
+
+if assert_option "sourcedirs" "n"; then src_pkg_ver=$srcdir; fi
 
 mkdir -p $arcdir $src_pkg_ver $tmpdir
 

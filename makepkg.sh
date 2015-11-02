@@ -286,7 +286,7 @@ _pkgdir=$pkgdir; src_pkg_ver=$srcdir/$pkg-$ver
 
 if [ ${#src[@]} -ge 2 ]; then src_pkg_ver=$srcdir; fi
 
-if assert_option "sourcedirs" "n"; then src_pkg_ver=$srcdir; fi
+if assert_option "srcpkgverdir" "n"; then src_pkg_ver=$srcdir; fi
 
 mkdir -p $arcdir $src_pkg_ver $tmpdir
 

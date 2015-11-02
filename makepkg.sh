@@ -197,8 +197,9 @@ extract() {
                     tar -C $src_pkg_ver -jxpf $tmpdir/$file $cmd;;
                 *.tar.xz|*.tar.gz|*.tgz|*.tar)
                     tar -C $src_pkg_ver -xpf $tmpdir/$file $cmd;;
-                *.bz2|*.gz|*.zip)
+                *.bz2|*.zip)
                     bsdtar -C $src_pkg_ver -xpf $tmpdir/$file $cmd;;
+                *.gz) gunzip -c $tmp/$file > $src_pkg_ver/${file%.*};;
                 *) cp -a $tmpdir/$file $src_pkg_ver;;
             esac
         fi

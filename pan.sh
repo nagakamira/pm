@@ -189,7 +189,7 @@ add_pkg_ext() {
 
     echo "installing: $pkg ($ver-$rel)"
     backup
-    tar -C $rootdir -xpf $pkg-$ver-$rel.$ext
+    tar -C $rootdir -xpf $(dirname $rc_pn_ext)/$pkg-$ver-$rel.$ext
     restore
     unset bak
 

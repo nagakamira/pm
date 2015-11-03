@@ -129,17 +129,17 @@ run_package() {
 check_integrity() {
     if [[ -z $sha ]]; then return 1; fi
 
-    local match=1 bits=(1 224 256 384 512)
+    local match=0 bits=(1 224 256 384 512)
 
     for bit in ${bits[@]}; do
         shasum=$(sha${bit}sum $tmpdir/$file | cut -d' ' -f1)
         if [[ " ${sha[*]} " =~ " $shasum " ]]; then
-            match=0
+            match=1
         fi
     done
 
     echo "checking: $file"
-    if [[ $match == 1 ]]; then
+    if [[ $match == 0 ]]; then
         echo ">>> integrity mismatch"
         exit 1
     fi
@@ -309,7 +309,8 @@ if (( INFAKEROOT )); then
         mkdir -p $pkgdir
         run_package
         if [ -f "$rcsdir/system" ]; then
-            mkdir -p $pkgdir/$sysdir; cp $rcsdir/system $pkgdir/$sysdir/$pkg
+            mkdir -p $pkgdir/$sysdir
+            cp $rcsdir/system $pkgdir/$sysdir/$pkg
         fi
         create_archive
     fi

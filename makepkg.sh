@@ -31,6 +31,20 @@ get_recipes() {
     fi
 }
 
+print_bold() {
+    printf "\e[1m$1\e[0m $2\n"
+}
+
+print_green() {
+    local x=">>>"
+    if [[ -n $2 ]]; then x=$2; fi
+    printf "\e[1m\e[32m$x\e[0m $1\n"
+}
+
+print_red() {
+    printf "\e[1m\e[31m<<<\e[0m $1\n"
+}
+
 check_option() {
     local needle=$1; shift
     local options=$@
@@ -101,7 +115,7 @@ run_function() {
         unset MAKEFLAGS
     fi
 
-    cd $src_pkg_ver
+    print_green "entering $src_pkg_ver"; cd $src_pkg_ver
 
     export CPPFLAGS CFLAGS CXXFLAGS LDFLAGS MAKEFLAGS CHOST
     # save our shell options so pkgfunc() can't override what we need
@@ -138,9 +152,9 @@ check_integrity() {
         fi
     done
 
-    echo "checking: $file"
+    print_bold "checking:" "$file"
     if [[ $match == 0 ]]; then
-        echo ">>> integrity mismatch"
+        print_red "integrity mismatch"
         exit 1
     fi
 }
@@ -172,7 +186,7 @@ download() {
             file=$(basename $su); src_url=$su
         fi
         if [ ! -f $tmpdir/$file ]; then
-            echo "downloading: $file"
+            print_bold "downloading:" "$file"
             curl -L -o $tmpdir/$file $src_url
         fi
     fi
@@ -183,31 +197,35 @@ extract() {
 
     check_integrity
 
+    e_msg="extracting:"; c_msg="copying:"
+
     if assert_option "extract" "n"; then
+        print_bold $c_msg $file
+        print_green $src_pkg_ver/$file "-->"
         cp -a $tmpdir/$file $src_pkg_ver; continue
     fi
 
     if assert_option "extract" "y"; then
         if [[ $su != git* ]]; then
-            e_msg="extracting: $file"
-            c_msg="copying: $file -> $src_pkg_ver"
             if [ ${#src[@]} -eq 1 ]; then cmd="--strip-components=1"; fi
             if assert_option "stripcomponents" "n"; then unset cmd; fi
             case $file in
                 *.tar.bz2)
-                    echo $e_msg
+                    print_bold $e_msg $file; print_green $src_pkg_ver
                     tar -C $src_pkg_ver -jxpf $tmpdir/$file $cmd;;
                 *.tar.xz|*.tar.gz|*.tgz|*.tar)
-                    echo $e_msg
+                    print_bold $e_msg $file; print_green $src_pkg_ver
                     tar -C $src_pkg_ver -xpf $tmpdir/$file $cmd;;
                 *.bz2|*.zip)
-                    echo $e_msg
+                    print_bold $e_msg $file; print_green $src_pkg_ver
                     bsdtar -C $src_pkg_ver -xpf $tmpdir/$file $cmd;;
                 *.gz)
-                    echo $e_msg
+                    print_bold $e_msg $file; print_green $src_pkg_ver
                     gunzip -c $tmpdir/$file > $src_pkg_ver/${file%.*};;
                 *)
-                    echo $c_msg; cp -a $tmpdir/$file $src_pkg_ver;;
+                    print_bold $c_msg $file
+                    print_green $src_pkg_ver/$file "-->"
+                    cp -a $tmpdir/$file $src_pkg_ver;;
             esac
         fi
     fi
@@ -232,6 +250,7 @@ create_archive() {
     fi
 
     if assert_option "strip" "y"; then
+        print_green "stripping unneeded symbols"
         find . -type f 2>/dev/null | while read binary; do
             case "$(file -bi "$binary")" in
                 *application/x-sharedlib*)
@@ -252,6 +271,7 @@ create_archive() {
 
     find ./ | sed 's/.\//\//' | sort > $pkgdir/$lstdir/$pkg
 
+    print_green "compressing $pkg-$ver-$rel.$ext"
     tar -cpJf $arcdir/$pkg-$ver-$rel.$ext ./
 }
 
@@ -296,6 +316,7 @@ if (( INFAKEROOT )); then
             pkg=$pn
             pkgdir=$pkgdir/$pkg
             mkdir -p $pkgdir
+            print_bold "packaging: $pkg ($ver-$rel)"
             run_package $pn
             if [ -f "$rcsdir/system.$pkg" ]; then
                 mkdir -p $pkgdir/$sysdir
@@ -307,6 +328,7 @@ if (( INFAKEROOT )); then
     else
         pkgdir=$pkgdir/$pkg
         mkdir -p $pkgdir
+        print_bold "packaging:" "$pkg ($ver-$rel)"
         run_package
         if [ -f "$rcsdir/system" ]; then
             mkdir -p $pkgdir/$sysdir
@@ -323,7 +345,7 @@ else
         done
     fi
 
-    echo "building: $pkg ($ver-$rel)"
+    print_bold "building:" "$pkg ($ver-$rel)"
     if type build >/dev/null 2>&1; then
         run_function_safe "build"
     fi

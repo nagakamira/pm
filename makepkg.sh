@@ -152,7 +152,7 @@ check_integrity() {
         fi
     done
 
-    print_bold "checking:" "$file"
+    print_bold "checking:" $file
     if [[ $match == 0 ]]; then
         print_red "integrity mismatch"
         exit 1
@@ -186,7 +186,7 @@ download() {
             file=$(basename $su); src_url=$su
         fi
         if [ ! -f $tmpdir/$file ]; then
-            print_bold "downloading:" "$file"
+            print_bold "downloading:" $file
             curl -L -o $tmpdir/$file $src_url
         fi
     fi
@@ -316,7 +316,7 @@ if (( INFAKEROOT )); then
             pkg=$pn
             pkgdir=$pkgdir/$pkg
             mkdir -p $pkgdir
-            print_bold "packaging: $pkg ($ver-$rel)"
+            print_bold "packaging:" "$pkg ($ver-$rel)"
             run_package $pn
             if [ -f "$rcsdir/system.$pkg" ]; then
                 mkdir -p $pkgdir/$sysdir

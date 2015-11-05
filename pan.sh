@@ -18,6 +18,7 @@ _GrpLst=false
 _Inf=false
 _Lst=false
 _Own=false
+_Sha=false
 _Upd=false
 _GrpUpd=false
 grpsys=false
@@ -609,6 +610,28 @@ Own() {
     fi
 }
 
+Sha() {
+    if [ -n "$pn" ]; then
+        . $rcsdir/$pn/recipe
+        for src_url in ${src[@]}; do
+            if [[ $src_url =~ "::" ]]; then
+                file=${src_url%::*}; src_url=${src_url#*::}
+            else
+                file=$(basename $src_url)
+            fi
+            if [ ! -f $tmpdir/$file ]; then
+                echo "downloading: $file"
+                curl -L -o $tmpdir/$file $src_url
+            fi
+            shasum+=$(echo "$(sha256sum $tmpdir/$file | cut -d' ' -f1) ")
+        done
+
+        for _sum in ${shasum[@]}; do
+            echo $_sum
+        done
+    fi
+}
+
 Upd() {
     local rc_pn deps
     if [ "$updrcs" = true ]; then
@@ -780,6 +803,7 @@ for i in $@; do
             echo "  -l, --list <name>               show package filelist"
             echo "  -m, --make-deps <name>          add build dependencies"
             echo "  -o, --owner <path>              show the file ownership"
+            echo "  -s, --sha256sum <name>          generate sha256sum"
             echo "  -u, --update <name>             update a package"
             echo "  -U, --update-all (groupname)    update all the packages"
             echo "options:"
@@ -803,6 +827,7 @@ for i in $@; do
         -l|--list) _Lst=true;;
         -m|--make-deps) _BldDep=true;;
         -o|--owner) _Own=true;;
+        -s|--shasum) _Sha=true;;
         -u|--update) _Upd=true;;
         -U|--update-all) _GrpUpd=true;;
     esac
@@ -821,5 +846,6 @@ if [ "$_GrpLst" = true ]; then shift; GrpLst; fi
 if [ "$_Inf" = true ]; then shift; pn=$1; Inf; fi
 if [ "$_Lst" = true ]; then shift; pn=$1; Lst; fi
 if [ "$_Own" = true ]; then shift; pt=$1; Own; fi
+if [ "$_Sha" = true ]; then shift; pn=$1; Sha; fi
 if [ "$_Upd" = true ]; then shift; args=$@; Upd; fi
 if [ "$_GrpUpd" = true ]; then shift; args=$@; GrpUpd; fi

@@ -28,6 +28,8 @@ source_safe() {
 get_recipes() {
     if [ ! -d $rcsdir ] && [ -n $rcsrepo ]; then
         git clone $rcsrepo $rcsdir
+    else
+        echo "please set recipe repository in /etc/pan.conf"; exit 1
     fi
 }
 

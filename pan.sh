@@ -44,7 +44,7 @@ AsRoot() {
 GetRcs() {
     if [ ! -d $rcsdir ] && [ -n $rcsrepo ]; then
         git clone $rcsrepo $rcsdir
-    else
+    elif [ -z $rcsrepo ]; then
     	echo "please set recipe repository in /etc/pan.conf"; exit 1
     fi
 }
@@ -92,7 +92,7 @@ GetPkg() {
             echo "downloading: $pkg-$ver-$rel.$ext"
             curl -f -L -o $arcdir/$pkg-$ver-$rel.$ext $pkgrepo/$pkg-$ver-$rel.$ext
             if [ ! -f $arcdir/$pkg-$ver-$rel.$ext ]; then
-                echo "$pkg: archive file not found"
+                echo "$pkg: $arcdir/$pkg-$ver-$rel.$ext: file not found"
                 rc_pn_missing+=($pkg)
             fi
         fi
@@ -220,7 +220,7 @@ Add() {
         if [ -f $rcsdir/$rc_pn/recipe ]; then
             . $rcsdir/$rc_pn/recipe
         else
-            echo "$rc_pn: recipe file not found"; exit 1
+            echo "$rc_pn: $rcsdir/$rc_pn/recipe: file not found"; exit 1
         fi
         alst+=($rc_pn)
         if [ "$skipdep" = true ]; then deps+=($rc_pn); else GetDep $rc_pn; fi
@@ -230,7 +230,7 @@ Add() {
 
     for i in ${deps[@]}; do
         if [ ! -f $rcsdir/$i/recipe ]; then
-            missing_deps+=($i); echo "$i: recipe file not found"
+            missing_deps+=($i); echo "$i: $rcsdir/$i/recipe: file not found"
         else
             if [ -f "$rootdir/$infdir/$i" ]; then
                 for pn in ${alst[@]}; do
@@ -328,22 +328,24 @@ GrpBld() {
 
 BldDep() {
     local rc_pn
-    GetRcs
+    AsRoot; GetRcs
 
     for rc_pn in $args; do
+        if [ "${rc_pn%=*}" = "rootdir" ]; then continue; fi
+
         if  [[ -L "$rcsdir/$rc_pn" && -d "$rcsdir/$rc_pn" ]]; then continue; fi
 
         if [ -f $rcsdir/$rc_pn/recipe ]; then
             . $rcsdir/$rc_pn/recipe
         else
-            echo "$rc_pn: recipe file not found"; exit 1
+            echo "$rc_pn: $rcsdir/$rc_pn/recipe: file not found"; exit 1
         fi
 
-        if [ ${#n[@]} -ge 2 ]; then
-            for i in ${!n[@]}; do
-                _dep=($(declare -f package_${n[$i]} | sed -n 's/dep=\(.*\);/\1/p' | tr -d "()" | tr -d "'" | tr -d "\""))
+        if [ ${#pkg[@]} -ge 2 ]; then
+            for i in ${!pkg[@]}; do
+                _dep=($(declare -f package_${pkg[$i]} | sed -n 's/dep=\(.*\);/\1/p' | tr -d "()" | tr -d "'" | tr -d "\""))
                 for i in ${_dep[@]}; do
-                    if [ ! -f $infdir/$i ]; then
+                    if [ ! -f $rootdir/$infdir/$i ]; then
                         dlst+=($i)
                     fi
                 done
@@ -353,7 +355,7 @@ BldDep() {
             fi
         elif [ -n "$dep" ]; then
             for i in ${dep[@]}; do
-                if [ ! -f $infdir/$i ]; then
+                if [ ! -f $rootdir/$infdir/$i ]; then
                     dlst+=($i)
                 fi
             done
@@ -364,7 +366,7 @@ BldDep() {
 
         if [ -n "$mkd" ]; then
             for i in ${mkd[@]}; do
-                if [ ! -f $infdir/$i ]; then
+                if [ ! -f $rootdir/$infdir/$i ]; then
                     mlst+=($i)
                 fi
             done
@@ -408,7 +410,7 @@ Del() {
         if [ -f $rootdir/$infdir/$rc_pn ]; then
             . $rootdir/$infdir/$rc_pn; export pkg ver
         else
-            echo "$rc_pn: info file not found"; exit 1
+            echo "$rc_pn: $rootdir/$infdir/$rc_pn: file not found"; exit 1
         fi
 
         if [ "$grpsys" = false ]; then
@@ -564,7 +566,7 @@ Inf() {
         fi
     else
         if [ -n "$pn" ]; then
-            echo "$pn: info not found"
+            echo "$pn: $infdir/$pn: file not found"
         fi
     fi
 }
@@ -574,7 +576,7 @@ Lst() {
         if [ -f $lstdir/$pn ]; then
             cat $lstdir/$pn
         else
-            echo "$pn: filelist not found"
+            echo "$pn: $lstdir/$pn: file not found"
         fi
     fi
 }
@@ -630,14 +632,14 @@ Upd() {
                 . $rcsdir/$rc_pn/recipe
                 pkg=$rc_pn; ver1=$ver; rel1=$rel; unset ver rel
             else
-                echo "$rc_pn: recipe file not found"; exit 1
+                echo "$rc_pn: $rcsdir/$rc_pn/recipe: file not found"; exit 1
             fi
         else
             if [ -f $rcsdir/$rc_pn/recipe ]; then
                 . $rcsdir/$rc_pn/recipe
                 ver1=$ver; rel1=$rel; unset ver rel
             else
-                echo "$rc_pn: recipe file not found"; exit 1
+                echo "$rc_pn: $rcsdir/$rc_pn/recipe: file not found"; exit 1
             fi
         fi
 

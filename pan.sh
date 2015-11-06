@@ -86,7 +86,7 @@ GetPkg() {
     local rc_pn
 
     if [ -z $rcsrepo ]; then
-    	echo "please set package repository in /etc/pan.conf"; exit 1
+    	print_red "please set package repository in /etc/pan.conf"; exit 1
     fi
 
     for rc_pn in ${plst[@]}; do

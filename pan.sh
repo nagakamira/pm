@@ -409,7 +409,7 @@ Del() {
     AsRoot
 
     for rc_pn in $args; do
-        if [ "${pn%=*}" = "rootdir" ]; then continue; fi
+        if [ "${rc_pn%=*}" = "rootdir" ]; then continue; fi
 
         if [ -f $rootdir/$infdir/$rc_pn ]; then
             . $rootdir/$infdir/$rc_pn; export pkg ver

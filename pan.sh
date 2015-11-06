@@ -316,7 +316,7 @@ GrpBld() {
 
     for gn in $args; do PkgLst; done
 
-    GrpDep; reducedeps
+    GrpDep
 
     if [ ! -d $grpdir ]; then mkdir -p $grpdir; fi
 

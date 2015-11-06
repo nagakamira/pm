@@ -31,7 +31,7 @@ if [[ ${EUID} -eq 0 ]]; then
     arcdir=$root_arcdir; rcsdir=$root_rcsdir
 else
     arcdir=$user_arcdir; rcsdir=$user_rcsdir
-    INFAKECHROOT=1
+    if type fakechroot >/dev/null 2>&1; then INFAKECHROOT=1; fi
 fi
 
 AsRoot() {
@@ -58,48 +58,22 @@ PkgLst() {
             unset pkg ver rel grp dep mkd bak opt src sha; continue
         fi
 
-        if [ ${#n[@]} -ge 2 ]; then
-            for i in ${!n[@]}; do
-                grp=$(echo $(declare -f package_${n[$i]} | sed -n 's/grp=\(.*\);/\1/p'))
+        if [ ${#pkg[@]} -ge 2 ]; then
+            for i in ${!pkg[@]}; do
+                grp=$(echo $(declare -f package_${pkg[$i]} | sed -n 's/grp=\(.*\);/\1/p'))
                 if [ -z "$grp" ]; then continue; fi
-                if [ "$grp" = "$gn" ]; then plst+=(${n[$i]}); fi
-                if [ -n "$grp" ]; then _plst+=(${n[$i]}); fi
+                if [ "$grp" = "$gn" ]; then plst+=(${pkg[$i]}); fi
             done
         else
             if [ -z "$grp" ]; then
                 unset pkg ver rel grp dep mkd bak opt src sha; continue
             fi
             if [ "$grp" = "$gn" ]; then plst+=($pkg); fi
-            if [ -n "$grp" ]; then _plst+=($pkg); fi
         fi
         unset pkg ver rel grp dep mkd bak opt src sha
     done
 
     plst=($(for i in ${plst[@]}; do echo $i; done | sort -u))
-    _plst=($(for i in ${_plst[@]}; do echo $i; done | sort -u))
-}
-
-reducedeps() {
-    for array in ${_plst[@]}; do
-        if [[ " ${plst[*]} " =~ " $array " ]]; then continue
-        else __plst+=($array)
-        fi
-    done
-
-    for array in ${deps[@]}; do
-        if [[ " ${__plst[*]} " =~ " $array " ]]; then continue
-        else __deps+=($array)
-        fi
-    done
-    deps=(${__deps[@]})
-}
-
-reduceupds() {
-    for array in ${_ulst[@]}; do
-        if [[ " ${slst[*]} " =~ " $array " ]]; then continue
-        else __slst+=($array)
-        fi
-    done
 }
 
 GetPkg() {
@@ -130,16 +104,16 @@ GetDep() {
         . $rcsdir/$rc_pn/recipe
     fi
 
-    if [ ${#n[@]} -ge 2 ]; then
-        for i in ${!n[@]}; do
-            if [ "${n[$i]}" = "$rc_pn" ]; then
-                dep=($(declare -f package_${n[$i]} | sed -n 's/dep=\(.*\);/\1/p' | tr -d "()" | tr -d "'" | tr -d "\""))
+    if [ ${#pkg[@]} -ge 2 ]; then
+        for i in ${!pkg[@]}; do
+            if [ "${pkg[$i]}" = "$rc_pn" ]; then
+                dep=($(declare -f package_${pkg[$i]} | sed -n 's/dep=\(.*\);/\1/p' | tr -d "()" | tr -d "'" | tr -d "\""))
             fi
         done
-        unset n
+        unset pkg
     fi
 
-    deps=(${deps[@]} $1)
+    deps=(${deps[@]} $rc_pn)
     for i in ${dep[@]}; do
         if [[ " ${deps[*]} " =~ " $i " ]]; then
             continue
@@ -201,7 +175,7 @@ add_pkg_ext() {
     if [ -f "$rootdir/$sysdir/$pkg" ]; then . $rootdir/$sysdir/$pkg
         if (( INFAKECHROOT )); then cmd=fakechroot; fi
         if [ "$rootdir" != "/" ]; then $cmd chroot $rootdir /bin/sh -c \
-            ". $sysdir/$pkg; if type post_add >/dev/null 2>&1; then post_add; fi" >/dev/null 2>&1
+            ". $sysdir/$pkg; if type post_add >/dev/null 2>&1; then post_add; fi"
         else
             if type post_add >/dev/null 2>&1; then post_add; fi
         fi
@@ -293,7 +267,7 @@ Add() {
         if [ -f "$rootdir/$sysdir/$pkg" ]; then . $rootdir/$sysdir/$pkg
             if (( INFAKECHROOT )); then cmd=fakechroot; fi
             if [ "$rootdir" != "/" ]; then $cmd chroot $rootdir /bin/sh -c \
-                ". $sysdir/$pkg; if type post_add >/dev/null 2>&1; then post_add; fi" >/dev/null 2>&1
+                ". $sysdir/$pkg; if type post_add >/dev/null 2>&1; then post_add; fi"
             else
                 if type post_add >/dev/null 2>&1; then post_add; fi
             fi
@@ -313,8 +287,7 @@ GrpAdd() {
         PkgLst
     done
 
-    GrpDep; reducedeps; plst=(${deps[@]})
-    GetPkg; skipdep=true; args=${plst[@]}; Add
+    GrpDep; plst=(${deps[@]}); echo ${plst[@]}; GetPkg; args=${plst[@]}; Add
 }
 
 Bld() {
@@ -438,7 +411,7 @@ Del() {
                 if type post_add >/dev/null 2>&1; then export -f post_add; fi
                 if (( INFAKECHROOT )); then cmd=fakechroot; fi
                 if [ "$rootdir" != "/" ]; then $cmd chroot $rootdir /bin/sh -c \
-                    ". $sysdir/$pkg; if type pre_del >/dev/null 2>&1; then pre_del; fi" >/dev/null 2>&1
+                    ". $sysdir/$pkg; if type pre_del >/dev/null 2>&1; then pre_del; fi"
                 else
                     if type pre_del >/dev/null 2>&1; then pre_del; fi
                 fi
@@ -463,7 +436,7 @@ Del() {
         if [ "$grpsys" = false ]; then
             if (( INFAKECHROOT )); then cmd=fakechroot; fi
             if [ "$rootdir" != "/" ]; then $cmd chroot $rootdir /bin/sh -c \
-                "if type post_del >/dev/null 2>&1; then post_del; fi" >/dev/null 2>&1
+                "if type post_del >/dev/null 2>&1; then post_del; fi"
             else
                 if type post_del >/dev/null 2>&1; then post_del; fi
             fi
@@ -501,7 +474,7 @@ GrpDel() {
             cp $rootdir/$sysdir/$rc_pn $rootdir/$sysdir/$rc_pn.sys
             if (( INFAKECHROOT )); then cmd=fakechroot; fi
             if [ "$rootdir" != "/" ]; then $cmd chroot $rootdir /bin/sh -c \
-                ". $sysdir/$rc_pn; if type pre_del >/dev/null 2>&1; then pre_del; fi" >/dev/null 2>&1
+                ". $sysdir/$rc_pn; if type pre_del >/dev/null 2>&1; then pre_del; fi"
             else
                 if type pre_del >/dev/null 2>&1; then pre_del; fi
             fi
@@ -515,7 +488,7 @@ GrpDel() {
             . $rootdir/$sysdir/$rc_pn.sys; . $rootdir/$infdir/$rc_pn.inf; export pkg ver
             if (( INFAKECHROOT )); then cmd=fakechroot; fi
             if [ "$rootdir" != "/" ]; then $cmd chroot $rootdir /bin/sh -c \
-                ". $sysdir/$rc_pn.sys; if type post_del >/dev/null 2>&1; then post_del; fi" >/dev/null 2>&1
+                ". $sysdir/$rc_pn.sys; if type post_del >/dev/null 2>&1; then post_del; fi"
             else
                 if type post_del >/dev/null 2>&1; then post_del; fi
             fi
@@ -642,7 +615,7 @@ Upd() {
         fi
     fi
 
-    if [ -z ${args[@]} ]; then return 0; fi
+    if [ -z "$args" ]; then return 0; fi
 
     for rc_pn in $args; do
         if  [[ -L "$rcsdir/$rc_pn" && -d "$rcsdir/$rc_pn" ]]; then
@@ -746,6 +719,14 @@ Upd() {
     $rootdir/ldconfig >/dev/null 2>&1
 }
 
+reduceupds() {
+    for array in ${_ulst[@]}; do
+        if [[ " ${deps[*]} " =~ " $array " ]]; then continue
+        else slst+=($array)
+        fi
+    done
+}
+
 GrpUpd() {
     local rc_pn
     if [ -d $rcsdir ]; then
@@ -756,15 +737,15 @@ GrpUpd() {
 
     if [ -n "$args" ]; then
         for gn in ${args[@]}; do PkgLst; done
-        GrpDep; reducedeps; _ulst=(${deps[@]})
+        GrpDep; _ulst=(${deps[@]})
     else
         for rc_pn in $(ls $rcsdir); do
             if [ -f $rcsdir/$rc_pn/recipe ]; then
                . $rcsdir/$rc_pn/recipe
             fi
-            if [ ${#n[@]} -ge 2 ]; then
-                for i in ${!n[@]}; do
-                    plst+=(${n[$i]})
+            if [ ${#pkg[@]} -ge 2 ]; then
+                for i in ${!pkg[@]}; do
+                    plst+=(${pkg[$i]})
                 done
             else
                 plst+=($pkg)
@@ -774,12 +755,12 @@ GrpUpd() {
     fi
 
     if [ -n "$skipupd" ]; then
-        unset plst _plst deps
+        unset plst deps
         for gn in ${skipupd[@]}; do PkgLst; done
-        GrpDep; slst=(${plst[@]}); reduceupds; _ulst=(${__slst[@]})
+        GrpDep; reduceupds; _ulst=(${slst[@]})
     fi
 
-    unset plst _plst
+    unset plst deps
     updrcs=false; args=${_ulst[@]}; Upd
 }
 

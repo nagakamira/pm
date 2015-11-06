@@ -18,13 +18,6 @@
 
 INFAKEROOT=0
 
-source_safe() {
-    if ! source "$1"; then
-        printf "$(gettext "Failed to source %s \n")" "$1"
-        exit 1
-    fi
-}
-
 get_recipes() {
     if [ ! -d $rcsdir ] && [ -n $rcsrepo ]; then
         git clone $rcsrepo $rcsdir
@@ -45,6 +38,12 @@ print_green() {
 
 print_red() {
     printf "\e[1m\e[31m<<<\e[0m $1\n"
+}
+
+source_safe() {
+    if ! source "$1" >/dev/null 2>&1; then
+        print_red "$1: file not found"; exit 1
+    fi
 }
 
 check_option() {

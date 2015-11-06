@@ -34,6 +34,10 @@ else
     if type fakechroot >/dev/null 2>&1; then INFAKECHROOT=1; fi
 fi
 
+print_red() {
+    printf "\e[1m\e[31m<<<\e[0m $1\n"
+}
+
 AsRoot() {
     if [[ ${EUID} -ne 0 ]] && [ "$rootdir" = "/" ]; then
         echo "This script must be run as root."
@@ -92,7 +96,7 @@ GetPkg() {
             echo "downloading: $pkg-$ver-$rel.$ext"
             curl -f -L -o $arcdir/$pkg-$ver-$rel.$ext $pkgrepo/$pkg-$ver-$rel.$ext
             if [ ! -f $arcdir/$pkg-$ver-$rel.$ext ]; then
-                echo "$pkg: $arcdir/$pkg-$ver-$rel.$ext: file not found"
+                print_red "$arcdir/$pkg-$ver-$rel.$ext: file not found"
                 rc_pn_missing+=($pkg)
             fi
         fi
@@ -220,7 +224,7 @@ Add() {
         if [ -f $rcsdir/$rc_pn/recipe ]; then
             . $rcsdir/$rc_pn/recipe
         else
-            echo "$rc_pn: $rcsdir/$rc_pn/recipe: file not found"; exit 1
+            print_red "$rcsdir/$rc_pn/recipe: file not found"; exit 1
         fi
         alst+=($rc_pn)
         if [ "$skipdep" = true ]; then deps+=($rc_pn); else GetDep $rc_pn; fi
@@ -230,7 +234,7 @@ Add() {
 
     for i in ${deps[@]}; do
         if [ ! -f $rcsdir/$i/recipe ]; then
-            missing_deps+=($i); echo "$i: $rcsdir/$i/recipe: file not found"
+            missing_deps+=($i); print_red "$rcsdir/$i/recipe: file not found"
         else
             if [ -f "$rootdir/$infdir/$i" ]; then
                 for pn in ${alst[@]}; do
@@ -338,7 +342,7 @@ BldDep() {
         if [ -f $rcsdir/$rc_pn/recipe ]; then
             . $rcsdir/$rc_pn/recipe
         else
-            echo "$rc_pn: $rcsdir/$rc_pn/recipe: file not found"; exit 1
+            print_red "$rcsdir/$rc_pn/recipe: file not found"; exit 1
         fi
 
         if [ ${#pkg[@]} -ge 2 ]; then
@@ -410,7 +414,7 @@ Del() {
         if [ -f $rootdir/$infdir/$rc_pn ]; then
             . $rootdir/$infdir/$rc_pn; export pkg ver
         else
-            echo "$rc_pn: $rootdir/$infdir/$rc_pn: file not found"; exit 1
+            print_red "$rootdir/$infdir/$rc_pn: file not found"; exit 1
         fi
 
         if [ "$grpsys" = false ]; then
@@ -566,7 +570,7 @@ Inf() {
         fi
     else
         if [ -n "$pn" ]; then
-            echo "$pn: $infdir/$pn: file not found"
+            print_red "$infdir/$pn: file not found"
         fi
     fi
 }
@@ -576,7 +580,7 @@ Lst() {
         if [ -f $lstdir/$pn ]; then
             cat $lstdir/$pn
         else
-            echo "$pn: $lstdir/$pn: file not found"
+            print_red "$lstdir/$pn: file not found"
         fi
     fi
 }
@@ -632,14 +636,14 @@ Upd() {
                 . $rcsdir/$rc_pn/recipe
                 pkg=$rc_pn; ver1=$ver; rel1=$rel; unset ver rel
             else
-                echo "$rc_pn: $rcsdir/$rc_pn/recipe: file not found"; exit 1
+                print_red "$rcsdir/$rc_pn/recipe: file not found"; exit 1
             fi
         else
             if [ -f $rcsdir/$rc_pn/recipe ]; then
                 . $rcsdir/$rc_pn/recipe
                 ver1=$ver; rel1=$rel; unset ver rel
             else
-                echo "$rc_pn: $rcsdir/$rc_pn/recipe: file not found"; exit 1
+                print_red "$rcsdir/$rc_pn/recipe: file not found"; exit 1
             fi
         fi
 

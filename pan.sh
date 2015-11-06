@@ -35,7 +35,7 @@ else
 fi
 
 print_red() {
-    printf "\e[1m\e[31m<<<\e[0m $1\n"
+    printf "\e[1m\e[31m>>>\e[0m $1\n"
 }
 
 AsRoot() {
@@ -598,7 +598,12 @@ Own() {
 
 Sha() {
     if [ -n "$pn" ]; then
-        . $rcsdir/$pn/recipe
+        if [ -f $rcsdir/$pn/recipe ]; then
+            . $rcsdir/$pn/recipe
+        else
+            print_red "$rcsdir/$pn/recipe: file not found"
+        fi
+
         for src_url in ${src[@]}; do
             if [[ $src_url =~ "::" ]]; then
                 file=${src_url%::*}; src_url=${src_url#*::}

@@ -29,7 +29,7 @@ print_green() {
 }
 
 print_red() {
-    printf "\e[1m\e[31m<<<\e[0m $1\n"
+    printf "\e[1m\e[31m>>>\e[0m $1\n"
 }
 
 source_safe() {

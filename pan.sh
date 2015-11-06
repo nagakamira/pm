@@ -34,14 +34,17 @@ else
     if type fakechroot >/dev/null 2>&1; then INFAKECHROOT=1; fi
 fi
 
+print_green() {
+    printf "\e[1m\e[32m>>>\e[0m $1\n"
+}
+
 print_red() {
     printf "\e[1m\e[31m>>>\e[0m $1\n"
 }
 
 AsRoot() {
     if [[ ${EUID} -ne 0 ]] && [ "$rootdir" = "/" ]; then
-        echo "This script must be run as root."
-        exit 1
+        print_red "This script must be run as root."; exit 1
     fi
 }
 
@@ -93,7 +96,7 @@ GetPkg() {
         . $rcsdir/$rc_pn/recipe
         if  [[ -L "$rcsdir/$rc_pn" && -d "$rcsdir/$rc_pn" ]]; then pkg=$rc_pn; fi
         if [ ! -f $arcdir/$pkg-$ver-$rel.$ext ]; then
-            echo "downloading: $pkg-$ver-$rel.$ext"
+            print_green "downloading: $pkg-$ver-$rel.$ext"
             curl -f -L -o $arcdir/$pkg-$ver-$rel.$ext $pkgrepo/$pkg-$ver-$rel.$ext
             if [ ! -f $arcdir/$pkg-$ver-$rel.$ext ]; then
                 print_red "$arcdir/$pkg-$ver-$rel.$ext: file not found"
@@ -103,7 +106,7 @@ GetPkg() {
     done
 
     if [ "${#rc_pn_missing[@]}" -ge "1" ]; then
-        echo "missing archive(s): ${rc_pn_missing[@]}"; exit 1
+        print_red "missing archive(s): ${rc_pn_missing[@]}"; exit 1
     fi
 
     unset pkg ver rel grp dep mkd bak opt src sha
@@ -173,7 +176,7 @@ add_pkg_ext() {
     tar -C $tempdir -xpf $rc_pn_ext
     . $tempdir/$infdir/*
 
-    echo "installing: $pkg ($ver-$rel)"
+    print_green "installing: $pkg ($ver-$rel)"
     backup
     tar -C $rootdir -xpf $(dirname $rc_pn_ext)/$pkg-$ver-$rel.$ext
     restore
@@ -252,7 +255,7 @@ Add() {
     done
 
     if [ "${#missing_deps[@]}" -ge "1" ]; then
-        echo "missing deps: ${missing_deps[@]}"; exit 1
+        print_red "missing deps: ${missing_deps[@]}"; exit 1
     fi
 
     plst=(${_deps[@]}); GetPkg
@@ -261,7 +264,7 @@ Add() {
         . $rcsdir/$i/recipe
         if  [[ -L "$rcsdir/$i" && -d "$rcsdir/$i" ]]; then pkg=$i; fi
 
-        echo "installing: $pkg ($ver-$rel)"
+        print_green "installing: $pkg ($ver-$rel)"
         backup
         tar -C $rootdir -xpf $arcdir/$pkg-$ver-$rel.$ext
         restore
@@ -432,7 +435,7 @@ Del() {
         fi
 
         if [ -f "$rootdir/$lstdir/$pkg" ]; then
-            echo "removing: $pkg ($ver-$rel)"
+            print_green "removing: $pkg ($ver-$rel)"
             list=$(tac $rootdir/$lstdir/$pkg)
         else
             continue
@@ -548,24 +551,24 @@ Inf() {
     if [ -f $infdir/$pn ]; then
         . $infdir/$pn
 
-        echo "package: $pkg"
-        echo "version: $ver"
-        echo "release: $rel"
+        print_green "package: $pkg"
+        print_green "version: $ver"
+        print_green "release: $rel"
         if [ -n "$grp" ]; then
-            echo "section: $grp"
+            print_green "section: $grp"
         fi
         if [ "${#dep[@]}" -ge "1" ]; then
-            echo "depends: ${dep[@]}"
+            print_green "depends: ${dep[@]}"
         fi
         if [ -n "$src" ]; then
             if [ "${#src[@]}" -gt "1" ]; then
                 for src_url in ${src[@]}; do
                     if [[ $src_url =~ "::" ]]; then src_url=${src_url#*::}; fi
-                    echo "sources: $src_url"
+                    print_green "sources: $src_url"
                 done
             else
                 if [[ $src =~ "::" ]]; then src=${src#*::}; fi
-                echo "sources: $src"
+                print_green "sources: $src"
             fi
         fi
     else
@@ -590,7 +593,7 @@ Own() {
         _own=$(grep "$pt" $lstdir/*)
         for ln in $_own; do
             if [ "$pt" = "${ln#*:}" ]; then
-                echo "${ln#$lstdir/}"
+                print_green "${ln#$lstdir/}"
             fi
         done
     fi
@@ -611,7 +614,7 @@ Sha() {
                 file=$(basename $src_url)
             fi
             if [ ! -f $tmpdir/$file ]; then
-                echo "downloading: $file"
+                print_green "downloading: $file"
                 curl -L -o $tmpdir/$file $src_url
             fi
             shasum+=$(echo "$(sha256sum $tmpdir/$file | cut -d' ' -f1) ")
@@ -696,7 +699,7 @@ Upd() {
         . $rcsdir/$rc_pn/recipe
         if  [[ -L "$rcsdir/$rc_pn" && -d "$rcsdir/$rc_pn" ]]; then pkg=$rc_pn; fi
 
-        echo "updating: $pkg ($_ver-$_rel -> $ver-$rel)"
+        print_green "updating: $pkg ($_ver-$_rel -> $ver-$rel)"
 
         if [ -f "$sysdir/$pkg" ]; then . $sysdir/$pkg
             if type pre_upd >/dev/null 2>&1; then pre_upd; fi

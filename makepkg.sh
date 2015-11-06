@@ -18,14 +18,6 @@
 
 INFAKEROOT=0
 
-get_recipes() {
-    if [ ! -d $rcsdir ] && [ -n $rcsrepo ]; then
-        git clone $rcsrepo $rcsdir
-    elif [ -z $rcsrepo ]; then
-        echo "please set recipe repository in /etc/pan.conf"; exit 1
-    fi
-}
-
 print_bold() {
     printf "\e[1m$1\e[0m $2\n"
 }
@@ -43,6 +35,14 @@ print_red() {
 source_safe() {
     if ! source "$1" >/dev/null 2>&1; then
         print_red "$1: file not found"; exit 1
+    fi
+}
+
+get_recipes() {
+    if [ ! -d $rcsdir ] && [ -n $rcsrepo ]; then
+        git clone $rcsrepo $rcsdir
+    elif [ -z $rcsrepo ]; then
+        print_red "please set recipe repository in /etc/pan.conf"; exit 1
     fi
 }
 

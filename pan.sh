@@ -49,7 +49,7 @@ GetRcs() {
     if [ ! -d $rcsdir ] && [ -n $rcsrepo ]; then
         git clone $rcsrepo $rcsdir
     elif [ -z $rcsrepo ]; then
-    	echo "please set recipe repository in /etc/pan.conf"; exit 1
+    	print_red "please set recipe repository in /etc/pan.conf"; exit 1
     fi
 }
 

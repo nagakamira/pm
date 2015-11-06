@@ -396,7 +396,7 @@ Con() {
             if [ ! -f "$i" ]; then continue; fi
             _con=$(grep "$i" $lstdir/*)
             for ln in $_con; do
-                echo "${ln#$lstdir/}"
+                print_red "${ln#$lstdir/}"
             done
         fi
     done

@@ -26,7 +26,7 @@ source_safe() {
 }
 
 get_recipes() {
-    if [ ! -d $rcsdir ]; then
+    if [ ! -d $rcsdir ] && [ -n $rcsrepo ]; then
         git clone $rcsrepo $rcsdir
     fi
 }

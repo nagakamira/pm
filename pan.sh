@@ -42,7 +42,7 @@ AsRoot() {
 }
 
 GetRcs() {
-    if [ ! -d $rcsdir ]; then
+    if [ ! -d $rcsdir ] && [ -n $rcsrepo ]; then
         git clone $rcsrepo $rcsdir
     fi
 }
@@ -78,6 +78,11 @@ PkgLst() {
 
 GetPkg() {
     local rc_pn
+
+    if [ -z $rcsrepo ]; then
+    	echo "please set package repository in /etc/pan.conf"; exit 1
+    fi
+
     for rc_pn in ${plst[@]}; do
         . $rcsdir/$rc_pn/recipe
         if  [[ -L "$rcsdir/$rc_pn" && -d "$rcsdir/$rc_pn" ]]; then pkg=$rc_pn; fi

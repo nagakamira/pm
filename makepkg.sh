@@ -319,7 +319,7 @@ support_alias
 
 if [ ${#src[@]} -ge 2 ]; then src_pkg_ver=$srcdir; fi
 
-if assert_option "srcpkgverdir" "n"; then src_pkg_ver=$srcdir; fi
+if assert_option "subsrcdir" "n"; then src_pkg_ver=$srcdir; fi
 
 mkdir -p $arcdir $src_pkg_ver $tmpdir
 

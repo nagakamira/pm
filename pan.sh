@@ -811,7 +811,7 @@ for i in $@; do
             echo "  -l, --list <name>               show package filelist"
             echo "  -m, --make-deps <name>          add build dependencies"
             echo "  -o, --owner <path>              show the file ownership"
-            echo "  -s, --sha256sum <name>          generate sha256sum"
+            echo "  -s, --sha-hash <name>           generate SHA hash"
             echo "  -u, --update <name>             update a package"
             echo "  -U, --update-all (groupname)    update all the packages"
             echo "options:"

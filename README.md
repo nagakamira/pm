@@ -102,7 +102,7 @@ Sometimes you want to know where the files are installed of a certain package:
 
     pan -l grep
 
-When you use mkd=() variable, it is always a good practice to install make dependcies before building a package, since pan installs runtime dependencies as well. It can be done like this:
+When you use mkd=() variable, it is always a good practice to install make dependencies before building a package, since pan will install runtime dependencies as well. It can be done like this:
 
     pan -m grep
 

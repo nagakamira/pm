@@ -475,16 +475,7 @@ GrpDel() {
 
     for gn in $args; do
         if [ "${gn%=*}" = "rootdir" ]; then continue; fi
-
-        for rc_pn in $(ls $rootdir/$infdir); do
-            if [ -f $rootdir/$infdir/$rc_pn ]; then
-                . $rootdir/$infdir/$rc_pn
-            fi
- 
-            if [ "$grp" = "$gn" ]; then plst+=($pkg); fi
-        done
-
-        plst=($(for i in ${plst[@]}; do echo $i; done | sort -u))
+        PkgLst
     done
 
     for rc_pn in ${plst[@]}; do

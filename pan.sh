@@ -311,6 +311,8 @@ Bld() {
     for rc_pn in $args; do
         makepkg $rc_pn
     done
+
+    set +e
 }
 
 GrpBld() {
@@ -331,6 +333,8 @@ GrpBld() {
             fi
         fi
     done
+
+    set +e
 }
 
 BldDep() {
@@ -532,9 +536,9 @@ GrpLst() {
             unset pkg grp; continue
         fi
 
-        if [ ${#n[@]} -ge 2 ]; then
-            for i in ${!n[@]}; do
-                grp=$(echo $(declare -f package_${n[$i]} | sed -n 's/grp=\(.*\);/\1/p'))
+        if [ ${#pkg[@]} -ge 2 ]; then
+            for i in ${!pkg[@]}; do
+                grp=$(echo $(declare -f package_${pkg[$i]} | sed -n 's/grp=\(.*\);/\1/p'))
                 glst+=($grp)
             done
         else

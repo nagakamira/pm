@@ -600,6 +600,7 @@ Own() {
 }
 
 Sha() {
+    local shaxxxsum=sha256sum
     if [ -n "$pn" ]; then
         if [ -f $rcsdir/$pn/recipe ]; then
             . $rcsdir/$pn/recipe
@@ -617,7 +618,12 @@ Sha() {
                 print_green "downloading: $file"
                 curl -L -o $tmpdir/$file $src_url
             fi
-            shasum+=$(echo "$(sha256sum $tmpdir/$file | cut -d' ' -f1) ")
+            if [[ -n $sha1sum ]]; then shaxxxsum=sha1sum; fi
+            if [[ -n $sha224sum ]]; then shaxxxsum=sha224sum; fi
+            if [[ -n $sha256sum ]]; then shaxxxsum=sha256sum; fi
+            if [[ -n $sha384sum ]]; then shaxxxsum=sha384sum; fi
+            if [[ -n $sha512sum ]]; then shaxxxsum=sha512sum; fi
+            shasum+=$(echo "$($shaxxxsum $tmpdir/$file | cut -d' ' -f1) ")
         done
 
         for _sum in ${shasum[@]}; do

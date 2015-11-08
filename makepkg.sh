@@ -219,6 +219,7 @@ extract() {
     if assert_option "extract" "y"; then
         if [[ $su != git* ]]; then
             if [ ${#src[@]} -eq 1 ]; then cmd="--strip-components=1"; fi
+            if assert_option "subsrcdir" "n"; then unset cmd; fi
             if assert_option "stripcomponents" "n"; then unset cmd; fi
             case $file in
                 *.tar.bz2)

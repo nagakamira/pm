@@ -629,6 +629,9 @@ Sha() {
 
 Upd() {
     local rc_pn deps
+
+    AsRoot
+
     if [ "$updrcs" = true ]; then
         if [ -d $rcsdir ]; then
             cd $rcsdir; git pull origin master
@@ -751,6 +754,9 @@ reduceupds() {
 
 GrpUpd() {
     local rc_pn
+
+    AsRoot
+
     if [ -d $rcsdir ]; then
         cd $rcsdir; git pull origin master
     else

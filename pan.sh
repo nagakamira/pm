@@ -553,7 +553,7 @@ Inf() {
             print_green "section: $grp"
         fi
         if [ "${#dep[@]}" -ge "1" ]; then
-            print_green "depends: ${dep[@]}"
+            print_green "depends: ${dep[*]}"
         fi
         if [ -n "$src" ]; then
             if [ "${#src[@]}" -gt "1" ]; then

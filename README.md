@@ -7,9 +7,14 @@ A git oriented package manager
     cd pan
     sudo ./install.sh
 
+<h3>Requirements</h3>
+
+	bash, git, curl, fakeroot, tar, libarchive, gzip
+	fakechroot (optional)
+
 <h3>Building package(s)</h3>
 
-To build a package you need to create a recipe file or organize the ~/build/rcs directory so that it has sub directories containing recipe files. If there is no ~/build/rcs directory, pan will clone recipes from repository if it is enabled in the configuration file(/etc/pan.conf), and populate ~/build/rcs with subdirectories containing recipes. If you want to create a recipe for a program, just create ~/build/rcs/grep directory and save the recipe file as "recipe" inside it. ~/build/rcs/grep/recipe should look like this:
+To build a package you need to create a recipe file or organize the ~/build/rcs directory so that it has sub directories containing recipe files. If there is no ~/build/rcs directory, pan will clone recipes from a repository if it is enabled in the configuration file, and populate ~/build/rcs with subdirectories containing recipes. If you want to organize a recipe collection of your own, just create ~/build/rcs/grep directory, as an example, and save the recipe file as "recipe" inside it. ~/build/rcs/grep/recipe should look like this:
 
     pkg=grep
     ver=2.22
@@ -33,6 +38,10 @@ To build a package you need to create a recipe file or organize the ~/build/rcs 
 The package variables have three letters that stands for: package, version, release, group, depends, source and SHA hash. The order is not important, and if there is no package dependency, then dep=() can be omitted. grp=() and sha=() are optional as well. If you rather want to use sha224sum=() variable as an example, it is an alias for sha=() with 224 bit hash. All the SHA hash bits are supported when using sha(). Also src=() can be replaced by url=() if it is desired. There are also mkd=(), bak=() and opt=() variables, which stands for makedepends, backup and options. bak=(/etc/pan.conf), for instance, preserves the pan.conf when reinstalling or updating the pan package. Supported options are: (!)extract, (!)strip, (!)emptydirs, !buildflags, !makeflags, !subsrcdir and !stripcomponents. An exclamation point infront of an option disables a certain functionality when building a package.
 
 Pan does automatically change directory to $srcdir/$pkg-$ver, ie ~/build/src/grep-2.22, when building a package. To disable automatically 'cd $srcdir/$pkg-$ver', add opt=(!subsrcdir) and $srcdir will be ~/build/src, but you need to manually add 'cd $pkg-$ver' into build() and package() functions. $pkgdir defaults to ~/build/pkg/grep-2.22. The configuration file is stored at /etc/pan.conf and build directories can be customized. In order to build the grep package, simply run:
+
+	pan -b recipe
+
+Or if you want to build from the recipe collection directory(~/build/rcs):
 
     pan -b grep
 

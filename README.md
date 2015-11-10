@@ -9,8 +9,8 @@ A git oriented package manager
 
 <h3>Requirements</h3>
 
-	bash, git, curl, fakeroot, tar, libarchive, gzip
-	fakechroot (optional)
+    bash, git, curl, fakeroot, tar, libarchive, gzip
+    fakechroot (optional)
 
 <h3>Building package(s)</h3>
 
@@ -39,7 +39,7 @@ The package variables have three letters that stands for: package, version, rele
 
 Pan does automatically change directory to $srcdir/$pkg-$ver, ie ~/build/src/grep-2.22, when building a package. To disable automatically 'cd $srcdir/$pkg-$ver', add opt=(!subsrcdir) and $srcdir will be ~/build/src, but you need to manually add 'cd $pkg-$ver' into build() and package() functions. $pkgdir defaults to ~/build/pkg/grep-2.22. The configuration file is stored at /etc/pan.conf and build directories can be customized. In order to build the grep package, simply run:
 
-	pan -b recipe
+    pan -b recipe
 
 Or if you want to build from the recipe collection directory(~/build/rcs):
 

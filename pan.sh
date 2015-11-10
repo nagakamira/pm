@@ -35,12 +35,12 @@ else
 fi
 
 print_green() {
-	local msg=$(readlink -m "$1")
+    local msg=$(readlink -m "$1")
     printf "\e[1m\e[32m>>>\e[0m $msg\n"
 }
 
 print_red() {
-	local msg=$(readlink -m "$1")
+    local msg=$(readlink -m "$1")
     printf "\e[1m\e[31m>>>\e[0m $msg\n"
 }
 
@@ -54,7 +54,7 @@ GetRcs() {
     if [ ! -d $rcsdir ] && [ -n $rcsrepo ]; then
         git clone $rcsrepo $rcsdir
     elif [ -z $rcsrepo ]; then
-    	print_red "please set recipe repository in /etc/pan.conf"; exit 1
+        print_red "please set recipe repository in /etc/pan.conf"; exit 1
     fi
 }
 
@@ -91,7 +91,7 @@ GetPkg() {
     local rc_pn
 
     if [ -z $rcsrepo ]; then
-    	print_red "please set package repository in /etc/pan.conf"; exit 1
+        print_red "please set package repository in /etc/pan.conf"; exit 1
     fi
 
     for rc_pn in ${plst[@]}; do

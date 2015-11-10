@@ -35,11 +35,13 @@ else
 fi
 
 print_green() {
-    printf "\e[1m\e[32m>>>\e[0m $1\n"
+	local msg=$(readlink -m "$1")
+    printf "\e[1m\e[32m>>>\e[0m $msg\n"
 }
 
 print_red() {
-    printf "\e[1m\e[31m>>>\e[0m $1\n"
+	local msg=$(readlink -m "$1")
+    printf "\e[1m\e[31m>>>\e[0m $msg\n"
 }
 
 AsRoot() {

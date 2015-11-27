@@ -35,12 +35,12 @@ else
 fi
 
 print_green() {
-    local msg=$(readlink -m "$1")
+    local msg=$(echo $1 | tr -s / /)
     printf "\e[1m\e[32m>>>\e[0m $msg\n"
 }
 
 print_red() {
-    local msg=$(readlink -m "$1")
+    local msg=$(echo $1 | tr -s / /)
     printf "\e[1m\e[31m>>>\e[0m $msg\n"
 }
 
@@ -102,13 +102,13 @@ GetPkg() {
             curl -f -L -o $arcdir/$pkg-$ver-$rel.$ext $pkgrepo/$pkg-$ver-$rel.$ext
             if [ ! -f $arcdir/$pkg-$ver-$rel.$ext ]; then
                 print_red "$arcdir/$pkg-$ver-$rel.$ext: file not found"
-                rc_pn_missing+=($pkg)
+                missing_arcs+=($pkg)
             fi
         fi
     done
 
-    if [ "${#rc_pn_missing[@]}" -ge "1" ]; then
-        print_red "missing archive(s): ${rc_pn_missing[@]}"; exit 1
+    if [ "${#missing_arcs[@]}" -ge "1" ]; then
+        print_red "missing archive(s): ${missing_arcs[@]}"; exit 1
     fi
 
     unset pkg ver rel grp dep mkd bak opt src sha

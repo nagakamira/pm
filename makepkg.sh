@@ -141,16 +141,6 @@ run_package() {
     run_function_safe "$pkgfunc"
 }
 
-support_alias() {
-    if [[ -n $sha1sum ]]; then sha=(${sha1sum[@]}); fi
-    if [[ -n $sha224sum ]]; then sha=(${sha224sum[@]}); fi
-    if [[ -n $sha256sum ]]; then sha=(${sha256sum[@]}); fi
-    if [[ -n $sha384sum ]]; then sha=(${sha384sum[@]}); fi
-    if [[ -n $sha512sum ]]; then sha=(${sha512sum[@]}); fi
-
-    if [[ -n $url ]]; then src=(${url[@]}); fi
-}
-
 check_integrity() {
     if [[ -z $sha ]]; then return 1; fi
 
@@ -314,8 +304,6 @@ else
 fi
 
 _pkgdir=$pkgdir; src_pkg_ver=$srcdir/$pkg-$ver
-
-support_alias
 
 if [ ${#src[@]} -ge 2 ]; then src_pkg_ver=$srcdir; fi
 

@@ -87,16 +87,6 @@ PkgLst() {
     plst=($(for i in ${plst[@]}; do echo $i; done | sort -u))
 }
 
-ChkSha() {
-    if [ -f $arcdir/shasums.tar.xz ]; then
-        rm -rf $arcdir/shasums.tar.xz
-        curl -f -L -o $arcdir/shasums.tar.xz $pkgrepo/shasums.tar.xz
-    else
-        curl -f -L -o $arcdir/shasums.tar.xz $pkgrepo/shasums.tar.xz
-    fi
-}
-
-
 GetPkg() {
     local rc_pn
 
@@ -121,8 +111,16 @@ GetPkg() {
         print_red "missing archive(s): ${missing_arcs[@]}"; exit 1
     fi
 
-    print_green "downloading: shasums.$ext"; ChkSha
-    print_green "checking integrity"
+    unset pkg ver rel grp dep mkd bak opt src sha
+}
+
+ChkSha() {
+    if [ -f $arcdir/shasums.tar.xz ]; then
+        rm -rf $arcdir/shasums.tar.xz
+        curl -s -f -L -o $arcdir/shasums.tar.xz $pkgrepo/shasums.tar.xz
+    else
+        curl -s -f -L -o $arcdir/shasums.tar.xz $pkgrepo/shasums.tar.xz
+    fi
 
     if [ -f $arcdir/shasums.tar.xz ]; then
         sha_tempdir=$(mktemp -d)
@@ -130,12 +128,20 @@ GetPkg() {
         for rc_pn in ${plst[@]}; do
             . $rcsdir/$rc_pn/recipe
             if  [[ -L "$rcsdir/$rc_pn" && -d "$rcsdir/$rc_pn" ]]; then pkg=$rc_pn; fi
-            . $sha_tempdir/$pkg-$ver-$rel
-            echo $sha        
+            shasum=$(echo "$(sha256sum $arcdir/$pkg-$ver-$rel.$ext | cut -d' ' -f1) ")
+            . $sha_tempdir/$pkg-$ver-$rel; sha=$(echo "$sha" | tr '\n' ' ')
+            if [ "$sha" != "$shasum" ]; then
+                print_red "$pkg: integrity mismatch"
+                shasum_arcs+=($pkg)
+            fi
         done
+        rm -rf $sha_tempdir; unset shasum
     fi
 
-    exit 1
+    if [ "${#shasum_arcs[@]}" -ge "1" ]; then
+        print_red "missing archive(s): ${shasum_arcs[@]}"; exit 1
+    fi
+
     unset pkg ver rel grp dep mkd bak opt src sha
 }
 
@@ -285,7 +291,7 @@ Add() {
         print_red "missing deps: ${missing_deps[@]}"; exit 1
     fi
 
-    plst=(${_deps[@]}); GetPkg
+    plst=(${_deps[@]}); GetPkg; ChkSha
 
     for i in ${_deps[@]}; do
         . $rcsdir/$i/recipe
@@ -717,7 +723,7 @@ Upd() {
     missing_deps=($(echo ${missing_deps[@]} | tr ' ' '\n' | sort -u | tr '\n' ' '))
     args=${missing_deps[@]}; Add
 
-    plst=(${ulst[@]}); GetPkg
+    plst=(${ulst[@]}); GetPkg; ChkSha
 
     for rc_pn in ${ulst[@]}; do
         . $infdir/$rc_pn

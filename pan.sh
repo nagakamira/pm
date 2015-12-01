@@ -138,7 +138,7 @@ ChkSha() {
     fi
 
     if [ "${#shasum_arcs[@]}" -ge "1" ]; then
-        print_red "integrity mismatch: ${shasum_arcs[@]}"; exit 1
+        print_red "integrity mismatch: ${shasum_arcs[*]}"; exit 1
     fi
 
     unset pkg ver rel grp dep mkd bak opt src sha

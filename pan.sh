@@ -131,7 +131,6 @@ ChkSha() {
             shasum=$(echo "$(sha256sum $arcdir/$pkg-$ver-$rel.$ext | cut -d' ' -f1) ")
             . $sha_tempdir/$pkg-$ver-$rel; sha=$(echo "$sha" | tr '\n' ' ')
             if [ "$sha" != "$shasum" ]; then
-                print_red "$pkg: integrity mismatch"
                 shasum_arcs+=($pkg)
             fi
         done
@@ -139,7 +138,7 @@ ChkSha() {
     fi
 
     if [ "${#shasum_arcs[@]}" -ge "1" ]; then
-        print_red "missing archive(s): ${shasum_arcs[@]}"; exit 1
+        print_red "integrity mismatch: ${shasum_arcs[@]}"; exit 1
     fi
 
     unset pkg ver rel grp dep mkd bak opt src sha

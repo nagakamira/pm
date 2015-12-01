@@ -38,7 +38,12 @@ if [ -f $pkg_repodir/shasums.tar.xz ]; then
 fi
 
 for _pkg in $(ls $rcs_tempdir); do
-    if [ -f $rcs_tempdir/$_pkg/recipe ]; then
+    if  [[ -L "$rcs_tempdir/$_pkg" && -d "$rcs_tempdir/$_pkg" ]]; then
+        if [ -f $rcs_tempdir/$_pkg/recipe ]; then
+            . $rcs_tempdir/$_pkg/recipe
+            pkg=$_pkg
+        fi
+    elif [ -f $rcs_tempdir/$_pkg/recipe ]; then
         . $rcs_tempdir/$_pkg/recipe
     fi
     if  [ -f $pkg_repodir/$pkg-$ver-$rel.$ext ]; then

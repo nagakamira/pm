@@ -627,7 +627,6 @@ Own() {
 }
 
 Sha() {
-    local shaxxxsum=sha256sum
     if [ -n "$pn" ]; then
         if [ -f $rcsdir/$pn/recipe ]; then
             . $rcsdir/$pn/recipe

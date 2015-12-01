@@ -135,7 +135,7 @@ ChkSha() {
                 shasum_arcs+=($pkg)
             fi
         done
-        rm -rf $sha_tempdir; unset shasum
+        rm -rf $sha_tempdir
     fi
 
     if [ "${#shasum_arcs[@]}" -ge "1" ]; then

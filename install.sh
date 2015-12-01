@@ -20,6 +20,7 @@ fi
 
 install -v -Dm755 pan.sh $rootdir/usr/bin/pan
 install -v -Dm755 makepkg.sh $rootdir/usr/bin/makepkg
+install -v -Dm755 makesha.sh $rootdir/usr/bin/makesha
 install -v -Dm644 pan.conf $rootdir/etc/pan.conf
 install -v -Dm644 README.md $rootdir/usr/share/pan/README.md
 install -v -Dm644 proto/recipe $rootdir/usr/share/pan/proto/recipe

@@ -87,6 +87,16 @@ PkgLst() {
     plst=($(for i in ${plst[@]}; do echo $i; done | sort -u))
 }
 
+ChkSha() {
+    if [ -f $arcdir/shasums.tar.xz ]; then
+        rm -rf $arcdir/shasums.tar.xz
+        curl -f -L -o $arcdir/shasums.tar.xz $pkgrepo/shasums.tar.xz
+    else
+        curl -f -L -o $arcdir/shasums.tar.xz $pkgrepo/shasums.tar.xz
+    fi
+}
+
+
 GetPkg() {
     local rc_pn
 
@@ -111,6 +121,21 @@ GetPkg() {
         print_red "missing archive(s): ${missing_arcs[@]}"; exit 1
     fi
 
+    print_green "downloading: shasums.$ext"; ChkSha
+    print_green "checking integrity"
+
+    if [ -f $arcdir/shasums.tar.xz ]; then
+        sha_tempdir=$(mktemp -d)
+        tar -C $sha_tempdir -xf $arcdir/shasums.tar.xz
+        for rc_pn in ${plst[@]}; do
+            . $rcsdir/$rc_pn/recipe
+            if  [[ -L "$rcsdir/$rc_pn" && -d "$rcsdir/$rc_pn" ]]; then pkg=$rc_pn; fi
+            . $sha_tempdir/$pkg-$ver-$rel
+            echo $sha        
+        done
+    fi
+
+    exit 1
     unset pkg ver rel grp dep mkd bak opt src sha
 }
 

@@ -25,7 +25,7 @@ AsRoot() {
 
 GetRcs() {
     if [ -n $rcsrepo ]; then
-        git clone $rcsrepo $rcs_tempdir
+    	git clone $rcsrepo $rcs_tempdir
     else
         print_red "please set recipe repository in /etc/pan.conf"; exit 1
     fi
@@ -33,8 +33,8 @@ GetRcs() {
 
 AsRoot; GetRcs
 
-if [ -f $pkg_repodir/shasums.$ext ]; then
-	rm -rf $pkg_repodir/shasums.$ext
+if [ -f $pkg_repodir/shasums.tar.xz ]; then
+	rm -rf $pkg_repodir/shasums.tar.xz
 fi
 
 for _pkg in $(ls $rcs_tempdir); do
@@ -43,10 +43,11 @@ for _pkg in $(ls $rcs_tempdir); do
 	fi
 	if  [ -f $pkg_repodir/$pkg-$ver-$rel.$ext ]; then
 		shasum=$(echo "$(sha256sum $pkg_repodir/$pkg-$ver-$rel.$ext | cut -d' ' -f1) ")
+		print_green "$pkg-$ver-$rel: $shasum"
 		echo "sha=$shasum" > $sha_tempdir/$pkg-$ver-$rel
 	fi
 done
 
-(cd $sha_tempdir; tar -cpJf $pkg_repodir/shasums.$ext ./)
+(cd $sha_tempdir; tar -cpJf $pkg_repodir/shasums.tar.xz ./)
 
 rm -rf $rcs_tempdir $sha_tempdir

@@ -333,7 +333,7 @@ GrpAdd() {
         PkgLst
     done
 
-    GrpDep; plst=(${deps[@]}); args=${plst[@]}; Add
+    GrpDep; args=${deps[@]}; Add
 }
 
 Bld() {
@@ -456,17 +456,15 @@ Del() {
             print_red "$rootdir/$infdir/$rc_pn: file not found"; exit 1
         fi
 
-        if [ "$grpsys" = false ]; then
-            if [ -f "$rootdir/$sysdir/$pkg" ]; then
-                . $rootdir/$sysdir/$pkg
-                if type post_del >/dev/null 2>&1; then export -f post_del; fi
-                if type post_add >/dev/null 2>&1; then export -f post_add; fi
-                if (( INFAKECHROOT )); then cmd=fakechroot; fi
-                if [ "$rootdir" != "/" ]; then $cmd chroot $rootdir /bin/sh -c \
-                    ". $sysdir/$pkg; if type pre_del >/dev/null 2>&1; then pre_del; fi"
-                else
-                    if type pre_del >/dev/null 2>&1; then pre_del; fi
-                fi
+        if [ -f "$rootdir/$sysdir/$rc_pn" ]; then
+            . $rootdir/$sysdir/$rc_pn
+            cp $rootdir/$infdir/$rc_pn $rootdir/$infdir/$rc_pn.inf
+            cp $rootdir/$sysdir/$rc_pn $rootdir/$sysdir/$rc_pn.sys
+            if (( INFAKECHROOT )); then cmd=fakechroot; fi
+            if [ "$rootdir" != "/" ]; then $cmd chroot $rootdir /bin/sh -c \
+                ". $sysdir/$rc_pn; if type pre_del >/dev/null 2>&1; then pre_del; fi"
+            else
+                if type pre_del >/dev/null 2>&1; then pre_del; fi
             fi
         fi
 
@@ -485,17 +483,21 @@ Del() {
             fi
         done
 
-        if [ "$grpsys" = false ]; then
+        if [ ! -d $rootdir/$logdir ]; then mkdir -p $rootdir/$logdir; fi
+        echo "[$(date +%Y-%m-%d) $(date +%H:%M)] [DEL] $pkg ($ver-$rel)" >> $rootdir/$logdir/pan.log
+    done
+
+    for rc_pn in $args; do
+        if [ -f "$rootdir/$sysdir/$rc_pn.sys" ]; then
+            . $rootdir/$sysdir/$rc_pn.sys; . $rootdir/$infdir/$rc_pn.inf; export pkg ver
             if (( INFAKECHROOT )); then cmd=fakechroot; fi
             if [ "$rootdir" != "/" ]; then $cmd chroot $rootdir /bin/sh -c \
-                "if type post_del >/dev/null 2>&1; then post_del; fi"
+                ". $sysdir/$rc_pn.sys; if type post_del >/dev/null 2>&1; then post_del; fi"
             else
                 if type post_del >/dev/null 2>&1; then post_del; fi
             fi
+            rm -f $rootdir/$sysdir/$rc_pn.sys $rootdir/$infdir/$rc_pn.inf
         fi
-
-        if [ ! -d $rootdir/$logdir ]; then mkdir -p $rootdir/$logdir; fi
-        echo "[$(date +%Y-%m-%d) $(date +%H:%M)] [DEL] $pkg ($ver-$rel)" >> $rootdir/$logdir/pan.log
     done
 
     $rootdir/ldconfig >/dev/null 2>&1
@@ -510,34 +512,7 @@ GrpDel() {
         PkgLst
     done
 
-    for rc_pn in ${plst[@]}; do
-        if [ -f "$rootdir/$sysdir/$rc_pn" ]; then
-            . $rootdir/$sysdir/$rc_pn; . $rootdir/$infdir/$rc_pn; export pkg ver
-            cp $rootdir/$infdir/$rc_pn $rootdir/$infdir/$rc_pn.inf
-            cp $rootdir/$sysdir/$rc_pn $rootdir/$sysdir/$rc_pn.sys
-            if (( INFAKECHROOT )); then cmd=fakechroot; fi
-            if [ "$rootdir" != "/" ]; then $cmd chroot $rootdir /bin/sh -c \
-                ". $sysdir/$rc_pn; if type pre_del >/dev/null 2>&1; then pre_del; fi"
-            else
-                if type pre_del >/dev/null 2>&1; then pre_del; fi
-            fi
-        fi
-    done
-
-    grpsys=true; args=${plst[@]}; Del
-
-    for rc_pn in ${plst[@]}; do
-        if [ -f "$rootdir/$sysdir/$rc_pn.sys" ]; then
-            . $rootdir/$sysdir/$rc_pn.sys; . $rootdir/$infdir/$rc_pn.inf; export pkg ver
-            if (( INFAKECHROOT )); then cmd=fakechroot; fi
-            if [ "$rootdir" != "/" ]; then $cmd chroot $rootdir /bin/sh -c \
-                ". $sysdir/$rc_pn.sys; if type post_del >/dev/null 2>&1; then post_del; fi"
-            else
-                if type post_del >/dev/null 2>&1; then post_del; fi
-            fi
-            rm -f $rootdir/$sysdir/$rc_pn.sys $rootdir/$infdir/$rc_pn.inf
-        fi
-    done
+    args=${plst[@]}; Del
 }
 
 Grp() {

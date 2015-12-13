@@ -1,5 +1,6 @@
 # Pan
-A git oriented package manager
+A git oriented package manager.
+Pan is used by [GNUrama Linux] (http://www.gnurama.org)
 
 <h3>Installing pan</h3>
 

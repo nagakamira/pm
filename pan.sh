@@ -489,7 +489,8 @@ Del() {
 
     for rc_pn in $args; do
         if [ -f "$rootdir/$sysdir/$rc_pn.sys" ]; then
-            . $rootdir/$sysdir/$rc_pn.sys; . $rootdir/$infdir/$rc_pn.inf; export pkg ver
+            . $rootdir/$sysdir/$rc_pn.sys
+            . $rootdir/$infdir/$rc_pn.inf; export pkg ver
             if (( INFAKECHROOT )); then cmd=fakechroot; fi
             if [ "$rootdir" != "/" ]; then $cmd chroot $rootdir /bin/sh -c \
                 ". $sysdir/$rc_pn.sys; if type post_del >/dev/null 2>&1; then post_del; fi"

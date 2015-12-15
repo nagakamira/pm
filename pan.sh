@@ -690,12 +690,12 @@ Upd() {
         . $rcsdir/$rc_pn/recipe;
         GetDep $pkg; deps=($(echo ${deps[@]} | tr ' ' '\n' | sort -u | tr '\n' ' '))
         for i in ${deps[@]}; do
-            if [ ! -f "$rootdir/$infdir/$i" ]; then missing_deps+=($i); fi
+            if [ ! -f "$rootdir/$infdir/$i" ]; then _missing_deps+=($i); fi
         done
     done
 
-    missing_deps=($(echo ${missing_deps[@]} | tr ' ' '\n' | sort -u | tr '\n' ' '))
-    args=${missing_deps[@]}; Add
+    _missing_deps=($(echo ${_missing_deps[@]} | tr ' ' '\n' | sort -u | tr '\n' ' '))
+    args=${_missing_deps[@]}; Add
 
     plst=(${ulst[@]}); GetPkg; ChkSha
 

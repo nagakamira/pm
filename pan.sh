@@ -117,10 +117,8 @@ GetPkg() {
 ChkSha() {
     if [ -f $arcdir/shasums.tar.xz ]; then
         rm -rf $arcdir/shasums.tar.xz
-        curl -s -f -L -o $arcdir/shasums.tar.xz $pkgrepo/shasums.tar.xz
-    else
-        curl -s -f -L -o $arcdir/shasums.tar.xz $pkgrepo/shasums.tar.xz
     fi
+    curl -s -f -L -o $arcdir/shasums.tar.xz $pkgrepo/shasums.tar.xz
 
     if [ -f $arcdir/shasums.tar.xz ]; then
         sha_tempdir=$(mktemp -d)

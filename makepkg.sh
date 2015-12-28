@@ -39,9 +39,9 @@ source_safe() {
 }
 
 get_recipes() {
-    if [ ! -d $rcsdir ] && [ -n $rcsrepo ]; then
+    if [ ! -d $rcsdir ] && [ -n "$rcsrepo" ]; then
         git clone $rcsrepo $rcsdir
-    elif [ -z $rcsrepo ]; then
+    elif [ ! -d $rcsdir ] && [ -z "$rcsrepo" ]; then
         print_red "please set recipe repository in /etc/pan.conf"; exit 1
     fi
 }

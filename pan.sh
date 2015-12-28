@@ -51,9 +51,9 @@ AsRoot() {
 }
 
 GetRcs() {
-    if [ ! -d $rcsdir ] && [ -n $rcsrepo ]; then
+    if [ ! -d $rcsdir ] && [ -n "$rcsrepo" ]; then
         git clone $rcsrepo $rcsdir
-    elif [ -z $rcsrepo ]; then
+    elif [ ! -d $rcsdir ] && [ -z "$rcsrepo" ]; then
         print_red "please set recipe repository in /etc/pan.conf"; exit 1
     fi
 }
@@ -90,14 +90,13 @@ PkgLst() {
 GetPkg() {
     local rc_pn
 
-    if [ -z $rcsrepo ]; then
-        print_red "please set package repository in /etc/pan.conf"; exit 1
-    fi
-
     for rc_pn in ${plst[@]}; do
         . $rcsdir/$rc_pn/recipe
         if  [[ -L "$rcsdir/$rc_pn" && -d "$rcsdir/$rc_pn" ]]; then pkg=$rc_pn; fi
         if [ ! -f $arcdir/$pkg-$ver-$rel.$ext ]; then
+            if [ -z "$rcsrepo" ]; then
+                print_red "please set package repository in /etc/pan.conf"; exit 1
+            fi
             print_green "downloading: $pkg-$ver-$rel.$ext"
             curl -f -L -o $arcdir/$pkg-$ver-$rel.$ext $pkgrepo/$pkg-$ver-$rel.$ext
             if [ ! -f $arcdir/$pkg-$ver-$rel.$ext ]; then

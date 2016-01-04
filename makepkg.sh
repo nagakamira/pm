@@ -1,5 +1,5 @@
 #!/bin/bash
-#   Copyright (c) 2015 Ali H. Caliskan <ali.h.caliskan@gmail.com>
+#   Copyright (c) 2015-2016 Ali H. Caliskan <ali.h.caliskan@gmail.com>
 #   Copyright (c) 2009-2015 Pacman Development Team <pacman-dev@archlinux.org>
 #
 #   This program is free software; you can redistribute it and/or modify

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Copyright 2015 Ali Caliskan <ali.h.caliskan at gmail.com>
+# Copyright 2015-2016 Ali Caliskan <ali.h.caliskan at gmail.com>
 # Pan is licenced under the GPLv3: http://gplv3.fsf.org
 
 . /etc/pan.conf
@@ -770,46 +770,46 @@ for i in $@; do
         -h|--help)
             echo "usage: `basename $0` [operation] <parameter>"
             echo "operation:"
-            echo "  -a, --add <name>                add a package"
-            echo "  -A, --grp-add <name>            add group of packages"
-            echo "  -b, --build <name>              build a package"
-            echo "  -B, --grp-build <name>          build group of packages"
-            echo "  -c, --conflict                  show conflicting files"
-            echo "  -d, --delete <name>             delete a package"
-            echo "  -D, --grp-delete <name>         delete group of packages"
-            echo "  -g, --group <name>              show group of packages"
-            echo "  -G, --grp-list                  show all the groups"
-            echo "  -i, --info <name>               show package information"
-            echo "  -l, --list <name>               show package filelist"
-            echo "  -m, --make-deps <name>          add build dependencies"
-            echo "  -o, --owner <path>              show the file ownership"
-            echo "  -s, --sha-hash <name>           generate SHA hash"
-            echo "  -u, --update <name>             update a package"
-            echo "  -U, --update-all (groupname)    update all the packages"
+            echo "  -a <name>                add a package"
+            echo "  -A <name>                add group of packages"
+            echo "  -b <name>                build a package"
+            echo "  -B <name>                build group of packages"
+            echo "  -c                       show conflicting files"
+            echo "  -d <name>                delete a package"
+            echo "  -D <name>                delete group of packages"
+            echo "  -g <name>                show group of packages"
+            echo "  -G                       show all the groups"
+            echo "  -i <name>                show package information"
+            echo "  -l <name>                show package filelist"
+            echo "  -m <name>                add build dependencies"
+            echo "  -o <path>                show the file ownership"
+            echo "  -s <name>                generate SHA hash"
+            echo "  -u <name>                update a package"
+            echo "  -U (groupname)           update all the packages"
             echo "options:"
-            echo "  reinstall                       force add a package"
-            echo "  rootdir=<directory>             change root directory"
-            echo "  skipdep                         skip dependency resolution"
+            echo "  reinstall                force add a package"
+            echo "  rootdir=<directory>      change root directory"
+            echo "  skipdep                  skip dependency resolution"
             exit 1;;
         reinstall) reinst=true;;
         rootdir=*) rootdir=${i#*=};;
         skipdep) skipdep=true;;
-        -a|--add) _Add=true;;
-        -A|--grp-add) _GrpAdd=true;;
-        -b|--build) _Bld=true;;
-        -B|--grp-build) _GrpBld=true;;
-        -c|--conflict) _Con=true;;
-        -d|--delete) _Del=true;;
-        -D|--grp-delete) _GrpDel=true;;
-        -g|--group) _Grp=true;;
-        -G|--grp-list) _GrpLst=true;;
-        -i|--info) _Inf=true;;
-        -l|--list) _Lst=true;;
-        -m|--make-deps) _BldDep=true;;
-        -o|--owner) _Own=true;;
-        -s|--shasum) _Sha=true;;
-        -u|--update) _Upd=true;;
-        -U|--update-all) _GrpUpd=true;;
+        -a) _Add=true;;
+        -A) _GrpAdd=true;;
+        -b) _Bld=true;;
+        -B) _GrpBld=true;;
+        -c) _Con=true;;
+        -d) _Del=true;;
+        -D) _GrpDel=true;;
+        -g) _Grp=true;;
+        -G) _GrpLst=true;;
+        -i) _Inf=true;;
+        -l) _Lst=true;;
+        -m) _BldDep=true;;
+        -o) _Own=true;;
+        -s) _Sha=true;;
+        -u) _Upd=true;;
+        -U) _GrpUpd=true;;
     esac
 done
 

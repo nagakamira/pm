@@ -171,7 +171,6 @@ restore() {
 }
 
 add_pkg_ext() {
-    AsRoot
     tempdir=$(mktemp -d)
 
     tar -C $tempdir -xpf $rc_pn_ext
@@ -201,6 +200,7 @@ add_pkg_ext() {
 
 Add() {
     local rc_pn i deps
+    AsRoot; GetRcs
 
     for rc_pn in $args; do
         if [ "${rc_pn%=*}" = "rootdir" ]; then continue; fi
@@ -217,10 +217,7 @@ Add() {
         fi
     done
 
-    args=${_args[@]}
-    AsRoot; GetRcs
-
-    for rc_pn in $args; do
+    for rc_pn in ${_args[@]}; do
         if [ "${rc_pn%=*}" = "rootdir" ]; then continue; fi
         if [ "${rc_pn}" = "reinstall" ]; then continue; fi
         if [ "${rc_pn}" = "skipdep" ]; then continue; fi

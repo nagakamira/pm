@@ -42,7 +42,7 @@ get_recipes() {
     if [ ! -d $rcsdir ] && [ -n "$rcsrepo" ]; then
         git clone $rcsrepo $rcsdir
     elif [ ! -d $rcsdir ] && [ -z "$rcsrepo" ]; then
-        print_red "please set recipe repository in /etc/pan.conf"; exit 1
+        print_red "please set recipe repository in /etc/pm.conf"; exit 1
     fi
 }
 
@@ -169,7 +169,7 @@ download() {
             giturl=${su%%#*}
         fi
         _gitref=${su#*#}
-        gitcmd="git checkout --force --no-track -B PAN"
+        gitcmd="git checkout --force --no-track -B PM"
         git clone $giturl $src_pkg_ver
         pushd $src_pkg_ver &>/dev/null
         if [[ $_gitref != $giturl ]]; then
@@ -286,7 +286,7 @@ if [ $# -eq 0 ]; then echo "try $0 <recipe>"; exit 1; fi
 
 unset pkg ver rel grp dep mkd bak opt src sha srcdir pkgdir rcsdir
 
-source_safe /etc/pan.conf; topdir=`pwd`
+source_safe /etc/pm.conf; topdir=`pwd`
 arcdir=$user_arcdir; rcsdir=$user_rcsdir
 
 if [[ -f "$1" && "$(basename $1)" == "recipe" ]]; then

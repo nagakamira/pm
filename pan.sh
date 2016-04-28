@@ -1,9 +1,9 @@
 #!/bin/bash
 
 # Copyright 2015-2016 Ali Caliskan <ali.h.caliskan at gmail.com>
-# Pan is licenced under the GPLv3: http://gplv3.fsf.org
+# pm is licenced under the GPLv3: http://gplv3.fsf.org
 
-. /etc/pan.conf
+. /etc/pm.conf
 
 _Add=false
 _GrpAdd=false
@@ -54,7 +54,7 @@ GetRcs() {
     if [ ! -d $rcsdir ] && [ -n "$rcsrepo" ]; then
         git clone $rcsrepo $rcsdir
     elif [ ! -d $rcsdir ] && [ -z "$rcsrepo" ]; then
-        print_red "please set recipe repository in /etc/pan.conf"; exit 1
+        print_red "please set recipe repository in /etc/pm.conf"; exit 1
     fi
 }
 
@@ -95,7 +95,7 @@ GetPkg() {
         if  [[ -L "$rcsdir/$rc_pn" && -d "$rcsdir/$rc_pn" ]]; then pkg=$rc_pn; fi
         if [ ! -f $arcdir/$pkg-$ver-$rel.$ext ]; then
             if [ -z "$rcsrepo" ]; then
-                print_red "please set package repository in /etc/pan.conf"; exit 1
+                print_red "please set package repository in /etc/pm.conf"; exit 1
             fi
             print_green "downloading: $pkg-$ver-$rel.$ext"
             curl -f -L -o $arcdir/$pkg-$ver-$rel.$ext $pkgrepo/$pkg-$ver-$rel.$ext
@@ -183,7 +183,7 @@ add_pkg_ext() {
     unset bak
 
     if [ ! -d $rootdir/$logdir ]; then mkdir -p $rootdir/$logdir; fi
-    echo "[$(date +%Y-%m-%d) $(date +%H:%M)] [ADD] $pkg ($ver-$rel)" >> $rootdir/$logdir/pan.log
+    echo "[$(date +%Y-%m-%d) $(date +%H:%M)] [ADD] $pkg ($ver-$rel)" >> $rootdir/$logdir/pm.log
 
     export pkg ver
     if [ -f "$rootdir/$sysdir/$pkg" ]; then . $rootdir/$sysdir/$pkg
@@ -269,7 +269,7 @@ Add() {
         unset bak
 
         if [ ! -d $rootdir/$logdir ]; then mkdir -p $rootdir/$logdir; fi
-        echo "[$(date +%Y-%m-%d) $(date +%H:%M)] [ADD] $pkg ($ver-$rel)" >> $rootdir/$logdir/pan.log
+        echo "[$(date +%Y-%m-%d) $(date +%H:%M)] [ADD] $pkg ($ver-$rel)" >> $rootdir/$logdir/pm.log
     done
 
     for i in ${_deps[@]}; do
@@ -307,7 +307,7 @@ Bld() {
     set -e
 
     for rc_pn in $args; do
-        makepkg $rc_pn
+        pmake $rc_pn
     done
 
     set +e
@@ -393,7 +393,7 @@ BldDep() {
 }
 
 Con() {
-    tmpfile=$(mktemp /tmp/pan.XXXXXXXXXX)
+    tmpfile=$(mktemp /tmp/pm.XXXXXXXXXX)
 
     cat $lstdir/* | sort -n | uniq -d > $tmpfile
     for i in $(cat $tmpfile); do
@@ -450,7 +450,7 @@ Del() {
         done
 
         if [ ! -d $rootdir/$logdir ]; then mkdir -p $rootdir/$logdir; fi
-        echo "[$(date +%Y-%m-%d) $(date +%H:%M)] [DEL] $pkg ($ver-$rel)" >> $rootdir/$logdir/pan.log
+        echo "[$(date +%Y-%m-%d) $(date +%H:%M)] [DEL] $pkg ($ver-$rel)" >> $rootdir/$logdir/pm.log
     done
 
     for rc_pn in $args; do
@@ -684,7 +684,7 @@ Upd() {
         restore
         unset bak
 
-        tmpfile=$(mktemp /tmp/pan.XXXXXXXXXX)
+        tmpfile=$(mktemp /tmp/pm.XXXXXXXXXX)
         list=$(comm -23 <(sort $rn.bak) <(sort $rn))
         for l in $list; do
             echo $l >> $tmpfile
@@ -706,7 +706,7 @@ Upd() {
         fi
 
         if [ ! -d $rootdir/$logdir ]; then mkdir -p $rootdir/$logdir; fi
-        echo "[$(date +%Y-%m-%d) $(date +%H:%M)] [UPD] $pkg ($ver-$rel)" >> $logdir/pan.log
+        echo "[$(date +%Y-%m-%d) $(date +%H:%M)] [UPD] $pkg ($ver-$rel)" >> $logdir/pm.log
     done
 
     $rootdir/ldconfig >/dev/null 2>&1

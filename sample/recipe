@@ -1,10 +1,10 @@
 pkg=grep
-ver=2.22
+ver=2.25
 rel=1
 grp=base
 dep=(glibc pcre texinfo)
 src=(ftp://ftp.gnu.org/gnu/grep/grep-$ver.tar.xz)
-sha=(ca91d22f017bfcb503d4bc3b44295491c89a33a3df0c3d8b8614f2d3831836eb)
+sha=(e21e83bac50450e0d0d61a42c154ee0dceaacdbf4f604ef6e79071cb8e596830)
 
 build() {
     ./configure --prefix=/usr

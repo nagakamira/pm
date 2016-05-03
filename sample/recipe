@@ -1,6 +1,8 @@
 pkg=grep
 ver=2.25
 rel=1
+lic=GPL3
+url=http://www.gnu.org/software/grep/grep.html
 grp=base
 dep=(glibc pcre texinfo)
 src=(ftp://ftp.gnu.org/gnu/grep/grep-$ver.tar.xz)

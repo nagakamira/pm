@@ -1,6 +1,8 @@
 pkg=
 ver=
 rel=
+lic=
+url=
 grp=
 dep=()
 mkd=()

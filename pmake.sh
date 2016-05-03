@@ -194,7 +194,7 @@ download() {
 }
 
 extract() {
-    local cdm su=$1
+    local cmd su=$1
 
     check_integrity
 
@@ -239,7 +239,13 @@ create_archive() {
     echo "pkg=$pkg" >> $pkgdir/$infdir/$pkg
     echo "ver=$ver" >> $pkgdir/$infdir/$pkg
     echo "rel=$rel" >> $pkgdir/$infdir/$pkg
-
+    
+    if [[ -n $lic ]]; then
+        echo "lic=$lic" >> $pkgdir/$infdir/$pkg
+    fi
+    if [[ -n $url ]]; then
+        echo "url=$url" >> $pkgdir/$infdir/$pkg
+    fi
     if [[ -n $grp ]]; then
         echo "grp=$grp" >> $pkgdir/$infdir/$pkg
     fi

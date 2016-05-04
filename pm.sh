@@ -66,7 +66,7 @@ PkgLst() {
         fi
 
         if  [[ -L "$rcsdir/$rc_pn" && -d "$rcsdir/$rc_pn" ]]; then
-            unset pkg ver rel lic url grp dep mkd bak opt src sha; continue
+            unset pkg ver rel sum lic url grp dep mkd bak opt src sha; continue
         fi
 
         if [ ${#pkg[@]} -ge 2 ]; then
@@ -77,11 +77,11 @@ PkgLst() {
             done
         else
             if [ -z "$grp" ]; then
-                unset pkg ver rel lic url grp dep mkd bak opt src sha; continue
+                unset pkg ver rel sum lic url grp dep mkd bak opt src sha; continue
             fi
             if [ "$grp" = "$gn" ]; then plst+=($pkg); fi
         fi
-        unset pkg ver rel lic url grp dep mkd bak opt src sha
+        unset pkg ver rel sum lic url grp dep mkd bak opt src sha
     done
 
     plst=($(for i in ${plst[@]}; do echo $i; done | sort -u))
@@ -110,7 +110,7 @@ GetPkg() {
         print_red "missing archive(s): ${missing_arcs[@]}"; exit 1
     fi
 
-    unset pkg ver rel lic url grp dep mkd bak opt src sha
+    unset pkg ver rel sum lic url grp dep mkd bak opt src sha
 }
 
 GetDep() {
@@ -144,7 +144,7 @@ GrpDep() {
     for rc_pn in ${plst[@]}; do
         GetDep $rc_pn
     done
-    unset pkg ver rel lic url grp dep mkd bak opt src sha
+    unset pkg ver rel sum lic url grp dep mkd bak opt src sha
  
     deps=($(echo ${deps[@]} | tr ' ' '\n' | sort -u | tr '\n' ' '))
 }
@@ -523,6 +523,9 @@ Inf() {
         print_green "package: $pkg"
         print_green "version: $ver"
         print_green "release: $rel"
+        if [ -n "$sum" ]; then
+            print_green "summary: $sum"
+        fi
         if [ -n "$lic" ]; then
             print_green "license: $lic"
         fi

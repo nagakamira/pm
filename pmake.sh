@@ -239,9 +239,11 @@ create_archive() {
     echo "pkg=$pkg" >> $pkgdir/$infdir/$pkg
     echo "ver=$ver" >> $pkgdir/$infdir/$pkg
     echo "rel=$rel" >> $pkgdir/$infdir/$pkg
-    
+    if [[ -n $sum ]]; then
+        echo "sum=\"$sum\"" >> $pkgdir/$infdir/$pkg
+    fi    
     if [[ -n $lic ]]; then
-        echo "lic=$lic" >> $pkgdir/$infdir/$pkg
+        echo "lic=\"$lic\"" >> $pkgdir/$infdir/$pkg
     fi
     if [[ -n $url ]]; then
         echo "url=$url" >> $pkgdir/$infdir/$pkg

@@ -1,6 +1,7 @@
 pkg=grep
 ver=2.25
 rel=1
+dsc="A string search utility"
 lic=GPL3
 url=http://www.gnu.org/software/grep/grep.html
 grp=base

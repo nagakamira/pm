@@ -5,7 +5,7 @@ sum="A string search utility"
 lic=GPL3
 url=http://www.gnu.org/software/grep/grep.html
 grp=base
-dep=(glibc pcre texinfo)
+dep=(pcre texinfo)
 src=(ftp://ftp.gnu.org/gnu/grep/grep-$ver.tar.xz)
 sha=(e21e83bac50450e0d0d61a42c154ee0dceaacdbf4f604ef6e79071cb8e596830)
 

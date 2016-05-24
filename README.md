@@ -16,7 +16,7 @@ pm is used by [GNUrama Linux] (http://www.gnurama.org)
 <h3>Building package(s)</h3>
 
 To build a package you need to create a recipe file or organize the ~/build/rcs directory so that it has sub directories containing recipe files. If there is no ~/build/rcs directory, pm will clone recipes from a repository if it is enabled in the configuration file, and populate ~/build/rcs with subdirectories containing recipes. If you want to organize a recipe collection of your own, just create ~/build/rcs/grep directory, as an example, and save the recipe file as "recipe" inside it. ~/build/rcs/grep/recipe should look like this:
-
+```shell
     pkg=grep
     ver=2.25
     rel=1
@@ -38,7 +38,7 @@ To build a package you need to create a recipe file or organize the ~/build/rcs 
 
         rm -f $pkgdir/usr/share/info/dir
     }
-
+```
 The package variables have three letters that stands for: package, version, release, summary, license, url, group, depends, source and SHA hash. The order is not important, and if there is no package dependency, then dep=() can be omitted. sum=, lic=, url=, grp=() and sha=() are optional as well. All the SHA hash bits are supported when using sha=(). There are also mkd=(), bak=() and opt=() variables, which stands for makedepends, backup and options. bak=(/etc/pm.conf), for instance, preserves the pm.conf when reinstalling or updating the pm package. Supported options are: (!)extract, (!)strip, (!)emptydirs, !buildflags, !makeflags and !subsrcdir. An exclamation point infront of an option disables a certain functionality when building a package.
 
 pm does automatically change directory to $srcdir/$pkg-$ver, ie ~/build/src/grep-2.25, when building a package. To disable automatically 'cd $srcdir/$pkg-$ver', add opt=(!subsrcdir) and $srcdir will be ~/build/src, but you need to manually add 'cd $pkg-$ver' into build() and package() functions. $pkgdir defaults to ~/build/pkg/grep-2.25. The configuration file is stored at /etc/pm.conf and build directories can be customized. In order to build the grep package, simply run:

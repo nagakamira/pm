@@ -203,7 +203,7 @@ extract() {
     if assert_option "extract" "n"; then
         print_bold $c_msg $file
         print_green $src_pkg_ver/$file "-->"
-        cp -a $tmpdir/$file $src_pkg_ver; continue
+        cp -a $tmpdir/$file $src_pkg_ver
     fi
 
     if assert_option "extract" "y"; then

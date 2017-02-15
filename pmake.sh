@@ -160,6 +160,18 @@ check_integrity() {
     fi
 }
 
+gitref() {
+    gitcmd="git checkout --force --no-track -B PM"
+
+    if [[ $_gitref != $giturl ]]; then
+        case ${_gitref%%=*} in
+            commit|tag) $gitcmd ${_gitref##*=};;
+            branch) $gitcmd origin/${_gitref##*=};;
+            *) echo "${_gitref}: not supported"; exit 1;;
+        esac
+    fi
+}
+
 download() {
     local su=$1
     if [[ $su == git* ]]; then
@@ -169,17 +181,16 @@ download() {
             giturl=${su%%#*}
         fi
         _gitref=${su#*#}
-        gitcmd="git checkout --force --no-track -B PM"
-        git clone $giturl $src_pkg_ver
-        pushd $src_pkg_ver &>/dev/null
-        if [[ $_gitref != $giturl ]]; then
-            case ${_gitref%%=*} in
-                commit|tag) $gitcmd ${_gitref##*=};;
-                branch) $gitcmd origin/${_gitref##*=};;
-                *) echo "${_gitref}: not supported"; exit 1;;
-            esac
+
+        if [ ${#src[@]} -ge 2 ]; then
+            git clone $giturl
+            if [[ $_gitref != $giturl ]]; then gitref; fi
+        else
+            git clone $giturl $src_pkg_ver
+            pushd $src_pkg_ver &>/dev/null
+            gitref
+            popd &>/dev/null
         fi
-        popd &>/dev/null
     else
         if [[ $su =~ "::" ]]; then
             file=${su%::*}; src_url=${su#*::}

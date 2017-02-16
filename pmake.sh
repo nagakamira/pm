@@ -183,8 +183,10 @@ download() {
         _gitref=${su#*#}
 
         if [ ${#src[@]} -ge 2 ]; then
+            pushd $src_pkg_ver &>/dev/null
             git clone $giturl
-            if [[ $_gitref != $giturl ]]; then gitref; fi
+            cd $(ls -t $src_pkg_ver | head -1); gitref; cd ../
+            popd &>/dev/null
         else
             git clone $giturl $src_pkg_ver
             pushd $src_pkg_ver &>/dev/null

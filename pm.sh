@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 # Copyright 2015-2016 Ali Caliskan <ali.h.caliskan at gmail.com>
 # pm is licenced under the GPLv3: http://gplv3.fsf.org

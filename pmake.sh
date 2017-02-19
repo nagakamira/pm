@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 #   Copyright (c) 2015-2016 Ali H. Caliskan <ali.h.caliskan@gmail.com>
 #   Copyright (c) 2009-2015 Pacman Development Team <pacman-dev@archlinux.org>
 #
